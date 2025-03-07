@@ -2,7 +2,7 @@ _help:
     @just --list
 
 run_overbroke_sim *ARGS:
-     RUST_BACKTRACE=1 cargo run --bin run_overbroke_sim -- {{ARGS}}
+     RUST_LOG=debug RUST_BACKTRACE=1 cargo run --bin run_overbroke_sim -- {{ARGS}}
 
 # run the tests
 test:
