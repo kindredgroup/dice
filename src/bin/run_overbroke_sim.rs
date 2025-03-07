@@ -6,7 +6,7 @@ use stanza::style::{HAlign, Header, Styles};
 use stanza::table::{Col, Row, Table};
 use tinyrand::StdRand;
 
-const CYCLES: usize = 1_000_000;
+const CYCLES: usize = 1_000;
 
 fn main() {
     env_logger::init();
@@ -21,44 +21,111 @@ fn main() {
         },
         Scenario {
             field: 25,
+            win_overround: 1.10,
+            k: 3,
+            d: 3,
+            target_place_overround: 1.10,
+        },
+        Scenario {
+            field: 25,
             win_overround: 1.15,
             k: 3,
             d: 3,
-            target_place_overround: 1.15,
+            target_place_overround: 1.10,
+        },
+        Scenario {
+            field: 25,
+            win_overround: 1.15,
+            k: 3,
+            d: 4,
+            target_place_overround: 1.10,
         },
         Scenario {
             field: 25,
             win_overround: 1.20,
             k: 3,
             d: 3,
-            target_place_overround: 1.15,
+            target_place_overround: 1.10,
         },
         Scenario {
             field: 25,
             win_overround: 1.25,
             k: 3,
             d: 3,
-            target_place_overround: 1.15,
+            target_place_overround: 1.10,
+        },
+        Scenario {
+            field: 25,
+            win_overround: 1.30,
+            k: 3,
+            d: 3,
+            target_place_overround: 1.10,
+        },
+        Scenario {
+            field: 25,
+            win_overround: 1.35,
+            k: 3,
+            d: 3,
+            target_place_overround: 1.10,
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.10,
+            k: 5,
+            d: 5,
+            target_place_overround: 1.10,
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.10,
+            k: 5,
+            d: 6,
+            target_place_overround: 1.10,
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.15,
+            k: 5,
+            d: 5,
+            target_place_overround: 1.10,
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.20,
+            k: 5,
+            d: 5,
+            target_place_overround: 1.10,
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.25,
+            k: 5,
+            d: 5,
+            target_place_overround: 1.10,
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.30,
+            k: 5,
+            d: 5,
+            target_place_overround: 1.10,
         },
     ]);
 
     log::info!("Cycles: {CYCLES}");
     let table = Table::default()
-        .with_cols(vec![
-            Col::new(Styles::default().with(HAlign::Right)),
-            Col::new(Styles::default().with(HAlign::Right)),
-            Col::new(Styles::default().with(HAlign::Right)),
-            Col::new(Styles::default().with(HAlign::Right)),
-            Col::new(Styles::default().with(HAlign::Right)),
-            Col::new(Styles::default().with(HAlign::Right)),
-            Col::new(Styles::default().with(HAlign::Right)),
-        ])
+        .with_cols({
+            let mut cols = vec![];
+            cols.resize_with(10, || Col::new(Styles::default().with(HAlign::Right)));
+            cols
+        })
         .with_row(Row::new(Styles::default().with(Header(true)), vec![
             "Field".into(),
             "Win o/r".into(),
             "Places".into(),
             "Split".into(),
             "Target place o/r".into(),
+            "Average place o/r".into(),
             "Overbroke %".into(),
             "Under target booksum %".into(),
             "At least one value outcome %".into(),
@@ -72,7 +139,7 @@ fn main() {
                 )
                 .into(),
                 format!(
-                    "{}",
+                    "{:.2}",
                     scenario.win_overround
                 )
                 .into(),
@@ -87,8 +154,13 @@ fn main() {
                 )
                 .into(),
                 format!(
-                    "{}",
+                    "{:.2}",
                     scenario.target_place_overround
+                )
+                .into(),
+                format!(
+                    "{:.2}",
+                    stats.average_place_overround
                 )
                 .into(),
                 format!(

@@ -9,6 +9,7 @@ pub struct Stats {
     pub total_under_target_booksum: usize,
     pub total_at_least_one_value_outcome: usize,
     pub total_value_outcomes: usize,
+    pub average_place_overround: f64,
 }
 
 /// Simulation scenario.
@@ -46,7 +47,9 @@ pub fn simulate(scenario: &Scenario, cycles: usize, rand: &mut impl Rand) -> Sta
             stats.total_at_least_one_value_outcome += 1;
             stats.total_value_outcomes += result.value_outcomes;
         }
+        stats.average_place_overround += result.place_overround;
     }
+    stats.average_place_overround /= cycles as f64;
     stats
 }
 
@@ -55,6 +58,7 @@ struct SimulationResult {
     overbroke: bool,
     under_target_booksum: bool,
     value_outcomes: usize,
+    place_overround: f64,
 }
 
 fn simulate_one(scenario: &Scenario, rand: &mut impl Rand) -> SimulationResult {
@@ -92,6 +96,7 @@ fn simulate_one(scenario: &Scenario, rand: &mut impl Rand) -> SimulationResult {
         overbroke,
         under_target_booksum,
         value_outcomes,
+        place_overround: booksum / scenario.k as f64,
     }
 }
 
