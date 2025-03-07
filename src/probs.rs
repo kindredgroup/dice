@@ -4,6 +4,7 @@ use crate::matrix::Matrix;
 use std::fmt::{Display, Formatter};
 use std::iter::Map;
 use std::slice::Iter;
+use tinyrand::Rand;
 
 pub trait SliceExt {
     fn sum(&self) -> f64;
@@ -19,6 +20,8 @@ pub trait SliceExt {
     fn mean(&self) -> f64;
     fn variance(&self) -> f64;
     fn stdev(&self) -> f64;
+    fn booksum(&self) -> f64;
+    fn fill_random_probs(&mut self, rand: &mut impl Rand, normal: f64);
 
     /// Total sum of squares.
     fn sst(&self) -> f64;
@@ -143,10 +146,26 @@ impl SliceExt for [f64] {
         self.variance().sqrt()
     }
 
+    fn booksum(&self) -> f64 {
+        self.invert().sum()
+    }
+
+    fn fill_random_probs(&mut self, rand: &mut impl Rand, normal: f64) {
+        for prob in self.iter_mut() {
+            *prob = random_f64(rand);
+        }
+        self.normalise(normal);
+    }
+
     fn sst(&self) -> f64 {
         let mean = self.mean();
         self.iter().map(|value| (mean - value).powi(2)).sum()
     }
+}
+
+#[inline]
+pub fn random_f64(rand: &mut impl Rand) -> f64 {
+    rand.next_u64() as f64 / u64::MAX as f64
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -168,10 +187,11 @@ impl Display for Fraction {
 
 #[cfg(test)]
 mod tests {
-    use assert_float_eq::*;
-    use crate::testing::{assert_slice_f64_near, assert_slice_f64_relative};
     use super::*;
     use crate::matrix::matrix_fixtures::populate_with_test_data;
+    use crate::testing::{assert_slice_f64_near, assert_slice_f64_relative};
+    use assert_float_eq::*;
+    use tinyrand::StdRand;
 
     #[test]
     fn sum() {
@@ -253,6 +273,20 @@ mod tests {
         let mut data = [0.1, 0.2, 0.3, 0.4];
         data.dilate_power(-0.2);
         assert_slice_f64_relative(&[0.0812, 0.1866, 0.3035, 0.4287], &data, 0.0005);
+    }
+    
+    #[test]
+    fn booksum() {
+        let data = [10.0, 5.0, 10.0/3.0, 2.5];
+        let booksum = data.booksum();
+        assert_f64_near!(1.0, booksum);
+    }
+    
+    #[test]
+    fn fill_random_probs() {
+        let mut data = (0..100).map(|_| 0.0).collect::<Vec<_>>();
+        data.fill_random_probs(&mut StdRand::default(), 1.0);
+        assert_f64_near!(1.0, data.sum());
     }
 
     #[test]
