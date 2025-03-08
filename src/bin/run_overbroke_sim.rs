@@ -1,12 +1,12 @@
-use dice::each_way::sim;
-use dice::each_way::sim::{Scenario, Stats};
+use dice::each_way::overbroke_sim;
+use dice::each_way::overbroke_sim::{Scenario, Stats};
 use stanza::renderer::markdown::Markdown;
 use stanza::renderer::Renderer;
 use stanza::style::{HAlign, Header, Styles};
 use stanza::table::{Col, Row, Table};
 use tinyrand::StdRand;
 
-const CYCLES: usize = 1_000;
+const CYCLES: usize = 10_000;
 
 fn main() {
     env_logger::init();
@@ -298,7 +298,7 @@ fn simulate_all(scenarios: Vec<Scenario>) -> Vec<(Scenario, Stats)> {
     scenarios
         .into_iter()
         .map(|scenario| {
-            let stats = sim::simulate(&scenario, CYCLES, &mut rand);
+            let stats = overbroke_sim::simulate(&scenario, CYCLES, &mut rand);
             (scenario, stats)
         })
         .collect()

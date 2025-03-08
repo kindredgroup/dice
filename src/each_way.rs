@@ -1,4 +1,4 @@
-pub mod sim;
+pub mod overbroke_sim;
 
 use crate::probs::SliceExt;
 
