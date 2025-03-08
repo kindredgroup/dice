@@ -22,6 +22,12 @@ pub trait SliceExt {
     fn stdev(&self) -> f64;
     fn booksum(&self) -> f64;
     fn fill_random_probs(&mut self, rand: &mut impl Rand, normal: f64);
+    
+    /// Fills the slice with randomly assigned probabilities skewed to favour
+    /// decreasing order (higher probabilities more likely appearing in the beginning). The cap
+    /// is set to `normal/sqrt(self.len)`. E.g., for a 25-element slice normalised to 1, 
+    /// the highest admissible probability will be 0.2 (1/√25).
+    fn fill_random_probs_skewed(&mut self, rand: &mut impl Rand, normal: f64);
 
     /// Total sum of squares.
     fn sst(&self) -> f64;
@@ -153,6 +159,17 @@ impl SliceExt for [f64] {
     fn fill_random_probs(&mut self, rand: &mut impl Rand, normal: f64) {
         for prob in self.iter_mut() {
             *prob = random_f64(rand);
+        }
+        self.normalise(normal);
+    }
+
+    fn fill_random_probs_skewed(&mut self, rand: &mut impl Rand, normal: f64) {
+        let mut remaining = normal;
+        let len = self.len();
+        let scale = 1.0 / (len as f64).sqrt();
+        for prob in self.iter_mut() {
+            *prob = random_f64(rand) * remaining * scale;
+            remaining -= *prob;
         }
         self.normalise(normal);
     }

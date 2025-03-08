@@ -102,7 +102,8 @@ fn simulate_one(scenario: &Scenario, rand: &mut impl Rand) -> SimulationResult {
 
 fn generate_random_probs(field: usize, rand: &mut impl Rand) -> Vec<f64> {
     let mut probs = (0..field).map(|_| 0.0).collect::<Vec<_>>();
-    probs.fill_random_probs(rand, 1.0);
+    // probs.fill_random_probs(rand, 1.0);
+    probs.fill_random_probs_skewed(rand, 1.0);
     probs
 }
 
