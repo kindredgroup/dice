@@ -114,7 +114,7 @@ fn probs_to_prices(probs: &[f64]) -> Vec<f64> {
 
 /// Obtains offered odds from true probs.
 fn probs_to_odds(probs: &[f64], overround: f64) -> Vec<f64> {
-    let mut odds = probs_to_prices(&probs);
+    let mut odds = probs_to_prices(probs);
     odds.scale(1.0 / overround);
     odds
 }

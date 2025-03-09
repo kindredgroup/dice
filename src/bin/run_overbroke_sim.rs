@@ -6,7 +6,7 @@ use stanza::style::{HAlign, Header, Styles};
 use stanza::table::{Col, Row, Table};
 use tinyrand::StdRand;
 
-const CYCLES: usize = 10_000;
+const CYCLES: usize = 1_000;
 
 fn main() {
     env_logger::init();
