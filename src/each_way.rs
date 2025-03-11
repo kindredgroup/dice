@@ -1,9 +1,14 @@
+pub mod probs_sim;
 pub mod overbroke_sim;
 
+use crate::capture::Capture;
+use crate::dilative::DilatedProbs;
+use crate::harville::harville_summary_condensed;
+use crate::matrix::Matrix;
 use crate::probs::SliceExt;
 
 /// Converts win odds to place using naive (E/W) odds-ratio.
-fn win_to_place_odds(win_odds: &[f64], d: u8) -> Vec<f64> {
+pub fn win_to_place_odds(win_odds: &[f64], d: u8) -> Vec<f64> {
     let d = d as f64;
     win_odds
         .iter()
@@ -12,7 +17,7 @@ fn win_to_place_odds(win_odds: &[f64], d: u8) -> Vec<f64> {
 }
 
 /// Produces place probability estimates for `k` placings using the Booksum-Adjusted Odds-Ratio method.
-fn win_to_est_place_probs(win_probs: &[f64], k: u8) -> Vec<f64> {
+pub fn win_to_baor_place_probs(win_probs: &[f64], k: u8) -> Vec<f64> {
     let k = k as f64;
     let mut place_probs = win_probs
         .iter()
@@ -20,4 +25,14 @@ fn win_to_est_place_probs(win_probs: &[f64], k: u8) -> Vec<f64> {
         .collect::<Vec<_>>();
     place_probs.normalise(k);
     place_probs
+}
+
+/// Produces place probability estimates for `k` placings using the Harville method.
+pub fn win_to_harville_place_probs(win_probs: &[f64], k: u8) -> Vec<f64> {
+    let win_probs = Matrix::from(
+        DilatedProbs::default()
+            .with_win_probs(Capture::Borrowed(win_probs))
+            .with_podium_places(k as usize),
+    );
+    harville_summary_condensed(&win_probs, k as usize)
 }

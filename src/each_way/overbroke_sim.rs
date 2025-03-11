@@ -1,6 +1,9 @@
-use crate::each_way::{win_to_est_place_probs, win_to_place_odds};
+use crate::each_way::{win_to_baor_place_probs, win_to_place_odds};
 use crate::probs::SliceExt;
 use tinyrand::Rand;
+
+/// Scale parameter for the exponential probability allocator.
+const BETA: f64 = 0.25;
 
 /// Summary of the overall simulation.
 #[derive(Default, Debug)]
@@ -31,10 +34,10 @@ pub struct Scenario {
     pub target_place_overround: f64,
 }
 
-/// Runs a complete simulation over a specified number of `cycles` for the given `scenario`.
-pub fn simulate(scenario: &Scenario, cycles: usize, rand: &mut impl Rand) -> Stats {
+/// Runs a complete simulation over a specified number of independent `trials` for the given `scenario`.
+pub fn simulate(scenario: &Scenario, trials: usize, rand: &mut impl Rand) -> Stats {
     let mut stats = Stats::default();
-    for _ in 0..cycles {
+    for _ in 0..trials {
         let result = simulate_one(scenario, rand);
         log::trace!("result={result:?}");
         if result.overbroke {
@@ -49,7 +52,7 @@ pub fn simulate(scenario: &Scenario, cycles: usize, rand: &mut impl Rand) -> Sta
         }
         stats.average_place_overround += result.place_overround;
     }
-    stats.average_place_overround /= cycles as f64;
+    stats.average_place_overround /= trials as f64;
     stats
 }
 
@@ -74,7 +77,7 @@ fn simulate_one(scenario: &Scenario, rand: &mut impl Rand) -> SimulationResult {
         place_odds.booksum()
     );
 
-    let place_probs = win_to_est_place_probs(&win_probs, scenario.k);
+    let place_probs = win_to_baor_place_probs(&win_probs, scenario.k);
     log::trace!("place_probs={place_probs:?}, sum={}", place_probs.sum());
 
     let place_prices = probs_to_prices(&place_probs);
@@ -102,8 +105,7 @@ fn simulate_one(scenario: &Scenario, rand: &mut impl Rand) -> SimulationResult {
 
 fn generate_random_probs(field: usize, rand: &mut impl Rand) -> Vec<f64> {
     let mut probs = (0..field).map(|_| 0.0).collect::<Vec<_>>();
-    // probs.fill_random_probs(rand, 1.0);
-    probs.fill_random_probs_skewed(rand, 1.0);
+    probs.fill_random_probs_exp(rand, BETA,1.0);
     probs
 }
 

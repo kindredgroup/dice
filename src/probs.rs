@@ -24,10 +24,21 @@ pub trait SliceExt {
     fn fill_random_probs(&mut self, rand: &mut impl Rand, normal: f64);
     
     /// Fills the slice with randomly assigned probabilities skewed to favour
-    /// decreasing order (higher probabilities more likely appearing in the beginning). The cap
-    /// is set to `normal/sqrt(self.len)`. E.g., for a 25-element slice normalised to 1, 
-    /// the highest admissible probability will be 0.2 (1/√25).
-    fn fill_random_probs_skewed(&mut self, rand: &mut impl Rand, normal: f64);
+    /// decreasing order (higher probabilities more likely appearing in the beginning). 
+    /// 
+    /// The algorithm works in two passes. The first pass assigns random probabilities from a
+    /// diminishing probability space `remaining`, initialised with 1. For each element in 
+    /// the `self` slice, values are sampled from a uniform distribution in the range constrained 
+    /// by `remaining * (self.len)^-beta`. Thereafter, the sampled value is subtracted from
+    /// `remaining`. The second pass simply scales the resulting probabilities 
+    /// to sum to `normal`.
+    /// 
+    /// E.g., for a 25-element slice and `beta` = 0.5, the highest admissible probability 
+    /// will be 0.2 (1/25^0.5) before normalisation. 
+    /// 
+    /// Over an infinite number of trials, the probabilities converge on an exponential that can 
+    /// be varied with the scale parameter `beta`.
+    fn fill_random_probs_exp(&mut self, rand: &mut impl Rand, beta: f64, normal: f64);
 
     /// Total sum of squares.
     fn sst(&self) -> f64;
@@ -163,15 +174,15 @@ impl SliceExt for [f64] {
         self.normalise(normal);
     }
 
-    fn fill_random_probs_skewed(&mut self, rand: &mut impl Rand, normal: f64) {
-        let mut remaining = normal;
+    fn fill_random_probs_exp(&mut self, rand: &mut impl Rand, beta: f64, normal: f64) {
+        let mut remaining = 1.0;
         let len = self.len();
-        let scale = 1.0 / (len as f64).sqrt();
+        let scale = 1.0 / (len as f64).powf(beta);
         for prob in self.iter_mut() {
             *prob = random_f64(rand) * remaining * scale;
             remaining -= *prob;
         }
-        self.normalise(normal);
+        self.normalise(normal); // force the probs to sum to the normal value
     }
 
     fn sst(&self) -> f64 {
