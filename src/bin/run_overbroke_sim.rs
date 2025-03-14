@@ -1,5 +1,5 @@
 use dice::each_way::overbroke_sim;
-use dice::each_way::overbroke_sim::{Scenario, Stats};
+use dice::each_way::overbroke_sim::{Estimator, Scenario, Stats};
 use stanza::renderer::Renderer;
 use stanza::renderer::markdown::Markdown;
 use stanza::style::{HAlign, Header, Styles};
@@ -18,6 +18,7 @@ fn main() {
             k: 2,
             d: 2,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
@@ -25,6 +26,7 @@ fn main() {
             k: 2,
             d: 3,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
@@ -32,6 +34,7 @@ fn main() {
             k: 2,
             d: 4,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
@@ -39,6 +42,7 @@ fn main() {
             k: 2,
             d: 2,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
@@ -46,6 +50,7 @@ fn main() {
             k: 2,
             d: 3,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
@@ -53,6 +58,7 @@ fn main() {
             k: 2,
             d: 4,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
@@ -60,6 +66,7 @@ fn main() {
             k: 2,
             d: 2,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
@@ -67,6 +74,7 @@ fn main() {
             k: 2,
             d: 3,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
@@ -74,34 +82,39 @@ fn main() {
             k: 2,
             d: 4,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
-            win_overround: 1.20,
-            k: 2,
-            d: 2,
-            target_place_overround: 1.10,
-        },
-        Scenario {
-            field: 12,
-            win_overround: 1.20,
-            k: 2,
-            d: 3,
-            target_place_overround: 1.10,
-        },
-        Scenario {
-            field: 12,
-            win_overround: 1.20,
-            k: 2,
-            d: 4,
-            target_place_overround: 1.10,
-        },
-        Scenario {
-            field: 12,
-            win_overround: 1.30,
+            win_overround: 1.25,
             k: 2,
             d: 2,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
+        },
+        Scenario {
+            field: 12,
+            win_overround: 1.25,
+            k: 2,
+            d: 3,
+            target_place_overround: 1.10,
+            estimator: Estimator::Harville
+        },
+        Scenario {
+            field: 12,
+            win_overround: 1.25,
+            k: 2,
+            d: 4,
+            target_place_overround: 1.10,
+            estimator: Estimator::Harville
+        },
+        Scenario {
+            field: 12,
+            win_overround: 1.30,
+            k: 2,
+            d: 2,
+            target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
@@ -109,6 +122,7 @@ fn main() {
             k: 2,
             d: 3,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
@@ -116,6 +130,7 @@ fn main() {
             k: 2,
             d: 4,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
@@ -123,6 +138,7 @@ fn main() {
             k: 2,
             d: 2,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
@@ -130,6 +146,7 @@ fn main() {
             k: 2,
             d: 3,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 12,
@@ -137,6 +154,7 @@ fn main() {
             k: 2,
             d: 4,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -144,6 +162,7 @@ fn main() {
             k: 3,
             d: 3,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -151,6 +170,7 @@ fn main() {
             k: 3,
             d: 4,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -158,6 +178,7 @@ fn main() {
             k: 3,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -165,6 +186,7 @@ fn main() {
             k: 3,
             d: 3,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -172,6 +194,7 @@ fn main() {
             k: 3,
             d: 4,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -179,6 +202,7 @@ fn main() {
             k: 3,
             d: 4,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -186,6 +210,7 @@ fn main() {
             k: 3,
             d: 3,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -193,6 +218,7 @@ fn main() {
             k: 3,
             d: 4,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -200,6 +226,7 @@ fn main() {
             k: 3,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -207,6 +234,7 @@ fn main() {
             k: 3,
             d: 3,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -214,6 +242,7 @@ fn main() {
             k: 3,
             d: 4,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -221,6 +250,7 @@ fn main() {
             k: 3,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -228,6 +258,7 @@ fn main() {
             k: 3,
             d: 3,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -235,6 +266,7 @@ fn main() {
             k: 3,
             d: 4,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -242,6 +274,7 @@ fn main() {
             k: 3,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -249,6 +282,7 @@ fn main() {
             k: 3,
             d: 3,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -256,6 +290,7 @@ fn main() {
             k: 3,
             d: 4,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -263,6 +298,7 @@ fn main() {
             k: 3,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -270,6 +306,7 @@ fn main() {
             k: 3,
             d: 3,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -277,6 +314,7 @@ fn main() {
             k: 3,
             d: 4,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 25,
@@ -284,6 +322,7 @@ fn main() {
             k: 3,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::Harville
         },
         Scenario {
             field: 50,
@@ -291,6 +330,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -298,6 +338,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -305,6 +346,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -312,6 +354,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -319,6 +362,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -326,6 +370,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -333,6 +378,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -340,6 +386,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -347,6 +394,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -354,6 +402,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -361,6 +410,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -368,6 +418,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -375,6 +426,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -382,6 +434,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -389,6 +442,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -396,6 +450,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -403,6 +458,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -410,6 +466,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -417,6 +474,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -424,6 +482,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -431,6 +490,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -438,6 +498,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -445,6 +506,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -452,6 +514,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -459,6 +522,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -466,6 +530,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -473,6 +538,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -480,6 +546,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -487,6 +554,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -494,6 +562,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -501,6 +570,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -508,6 +578,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -515,6 +586,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -522,6 +594,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -529,6 +602,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 50,
@@ -536,6 +610,71 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.55,
+            k: 5,
+            d: 5,
+            target_place_overround: 1.10,
+            estimator: Estimator::BAOR
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.55,
+            k: 5,
+            d: 6,
+            target_place_overround: 1.10,
+            estimator: Estimator::BAOR
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.55,
+            k: 5,
+            d: 7,
+            target_place_overround: 1.10,
+            estimator: Estimator::BAOR
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.55,
+            k: 5,
+            d: 8,
+            target_place_overround: 1.10,
+            estimator: Estimator::BAOR
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.60,
+            k: 5,
+            d: 5,
+            target_place_overround: 1.10,
+            estimator: Estimator::BAOR
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.60,
+            k: 5,
+            d: 6,
+            target_place_overround: 1.10,
+            estimator: Estimator::BAOR
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.60,
+            k: 5,
+            d: 7,
+            target_place_overround: 1.10,
+            estimator: Estimator::BAOR
+        },
+        Scenario {
+            field: 50,
+            win_overround: 1.60,
+            k: 5,
+            d: 8,
+            target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -543,6 +682,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -550,6 +690,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -557,6 +698,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -564,6 +706,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -571,6 +714,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -578,6 +722,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -585,6 +730,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -592,6 +738,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -599,6 +746,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -606,6 +754,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -613,6 +762,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -620,6 +770,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -627,6 +778,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -634,6 +786,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -641,6 +794,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -648,6 +802,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -655,6 +810,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -662,6 +818,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -669,6 +826,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -676,6 +834,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -683,6 +842,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -690,6 +850,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -697,6 +858,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -704,6 +866,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -711,6 +874,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -718,6 +882,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -725,6 +890,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -732,6 +898,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -739,6 +906,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -746,6 +914,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -753,6 +922,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -760,6 +930,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -767,6 +938,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -774,6 +946,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -781,6 +954,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -788,6 +962,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -795,6 +970,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -802,6 +978,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -809,6 +986,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
         Scenario {
             field: 100,
@@ -816,13 +994,22 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
+            estimator: Estimator::BAOR
         },
+        Scenario {
+            field: 100,
+            win_overround: 1.65,
+            k: 7,
+            d: 10,
+            target_place_overround: 1.10,
+            estimator: Estimator::BAOR
+        }
     ]);
 
     log::info!("Trials: {TRIALS}");
     let table = Table::default()
         .with_cols(
-            (0..4)
+            (0..11)
                 .map(|_| Col::new(Styles::default().with(HAlign::Right)))
                 .collect(),
         )
@@ -837,6 +1024,7 @@ fn main() {
             "Under target booksum %".into(),
             "At least one value outcome %".into(),
             "Value outcomes per field %".into(),
+            "Estimator".into(),
         ]))
         .with_rows(results.iter().map(|(scenario, stats)| {
             Row::new(Styles::default(), vec![
@@ -865,6 +1053,11 @@ fn main() {
                     "{:.2}",
                     stats.total_value_outcomes as f64 / TRIALS as f64 / scenario.field as f64
                         * 100.0
+                )
+                .into(),
+                format!(
+                    "{:?}",
+                    scenario.estimator
                 )
                 .into(),
             ])

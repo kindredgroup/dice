@@ -127,6 +127,43 @@ pub fn harville_summary_condensed_no_alloc(
     }
 }
 
+pub fn harville_3(probs: &[f64]) -> Vec<f64> {
+    let mut place_probs = (0..probs.len()).map(|_| 0.0).collect::<Vec<_>>();
+    // for (i, place_prob) in place_probs.iter_mut().enumerate() {
+    //     let mut big_sum = 0.0;
+    //     for j in 0..probs.len() {
+    //         for k in 0..probs.len() {
+    //             big_sum += probs[j] * probs[k] * probs[i] / (1.0 - probs[j]) / (1.0 - probs[j] - probs[k]);
+    //         }
+    //     }
+    // 
+    //     let mut small_sum = 0.0;
+    //     for j in 0..probs.len() {
+    //         small_sum += probs[j].powi(2) * probs[i] / (1.0 - probs[j]) / (1.0 - 2.0 * probs[j]);
+    //     }
+    //     println!("i={i}, big_sum={big_sum}, small_sum={small_sum}");
+    // 
+    //     *place_prob = big_sum - small_sum;
+    // }
+
+    for (i, place_prob) in place_probs.iter_mut().enumerate() {
+        let mut big_sum = 0.0;
+        for j in 0..probs.len() {
+            if j != i {
+                for k in 0..probs.len() {
+                    if k != i && k != j {
+                        big_sum += probs[j] * probs[k] * probs[i] / (1.0 - probs[j] - probs[k]) / (1.0 - probs[j]);
+                    }
+                }
+            }
+    
+        }
+        *place_prob = big_sum;
+    }
+    
+    place_probs
+}
+
 #[cfg(test)]
 mod tests {
     use assert_float_eq::assert_float_relative_eq;
@@ -357,7 +394,7 @@ mod tests {
     }
 
     #[test]
-    fn harville_summary_3x2_condensed_without_scratchings() {
+    fn harville_summary_2x3_condensed_without_scratchings() {
         const WIN_PROBS: [f64; 3] = [0.6, 0.3, 0.1];
         const RANKS: usize = 2;
         let probs = Matrix::from(
@@ -394,6 +431,22 @@ mod tests {
                 1.0,
                 1.0,
                 1.0,
+            ],
+            &summary,
+            1e-9,
+        );
+    }
+
+    #[test]
+    fn harville_special_3x3_without_scratchings() {
+        const WIN_PROBS: [f64; 3] = [0.6, 0.3, 0.1];
+        let summary = harville_3(&WIN_PROBS);
+        println!("summary: {summary:?}");
+        assert_slice_f64_relative(
+            &[
+                0.07619047619047627,
+                0.216666666666667,
+                0.7071428571428587,
             ],
             &summary,
             1e-9,

@@ -4,6 +4,7 @@ pub mod overbroke_sim;
 use crate::capture::Capture;
 use crate::dilative::DilatedProbs;
 use crate::harville::harville_summary_condensed;
+use crate::market::{Market, Overround, OverroundMethod, PriceBounds};
 use crate::matrix::Matrix;
 use crate::probs::SliceExt;
 
@@ -25,6 +26,22 @@ pub fn win_to_baor_place_probs(win_probs: &[f64], k: u8) -> Vec<f64> {
         .collect::<Vec<_>>();
     place_probs.normalise(k);
     place_probs
+}
+
+/// Produces place probability estimates for `k` placings using the Dynamic Odds-Ratio method.
+pub fn win_to_dynor_place_probs(win_probs: &[f64], k: u8) -> Vec<f64> {
+    const BOUNDS: PriceBounds = 1.04..=10_001.0;
+    
+    let market = Market::frame(
+        &Overround {
+            method: OverroundMethod::OddsRatio,
+            value: k as f64,
+        },
+        win_probs.iter().map(|p| *p).collect::<Vec<_>>(),
+        &BOUNDS
+    );
+    
+    market.prices.invert().collect()
 }
 
 /// Produces place probability estimates for `k` placings using the Harville method.

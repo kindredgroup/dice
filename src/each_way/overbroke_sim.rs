@@ -1,9 +1,24 @@
-use crate::each_way::{win_to_baor_place_probs, win_to_place_odds};
+use crate::each_way::{win_to_baor_place_probs, win_to_harville_place_probs, win_to_place_odds};
 use crate::probs::SliceExt;
 use tinyrand::Rand;
 
 /// Scale parameter for the exponential probability allocator.
 const BETA: f64 = 0.25;
+
+#[derive(Debug)]
+pub enum Estimator {
+    Harville,
+    BAOR
+}
+
+impl Estimator {
+    fn win_to_place_probs(&self, win_probs: &[f64], k: u8) -> Vec<f64> {
+        match self {
+            Estimator::Harville => win_to_harville_place_probs(win_probs, k),
+            Estimator::BAOR => win_to_baor_place_probs(win_probs, k)
+        }
+    }
+}
 
 /// Summary of the overall simulation.
 #[derive(Default, Debug)]
@@ -32,6 +47,9 @@ pub struct Scenario {
 
     /// Target relative overround for the place book. The target booksum will be `k * target_place_overround`.
     pub target_place_overround: f64,
+    
+    /// The place probabilities estimator to use.
+    pub estimator: Estimator
 }
 
 /// Runs a complete simulation over a specified number of independent `trials` for the given `scenario`.
@@ -77,7 +95,7 @@ fn simulate_one(scenario: &Scenario, rand: &mut impl Rand) -> SimulationResult {
         place_odds.booksum()
     );
 
-    let place_probs = win_to_baor_place_probs(&win_probs, scenario.k);
+    let place_probs = scenario.estimator.win_to_place_probs(&win_probs, scenario.k);
     log::trace!("place_probs={place_probs:?}, sum={}", place_probs.sum());
 
     let place_prices = probs_to_prices(&place_probs);
@@ -90,10 +108,11 @@ fn simulate_one(scenario: &Scenario, rand: &mut impl Rand) -> SimulationResult {
     let overbroke = booksum < scenario.k as f64;
     let min_booksum = scenario.k as f64 * scenario.target_place_overround;
     let under_target_booksum = booksum < min_booksum;
+    let value_tolerance = 1.0 / scenario.win_overround;
     let value_outcomes = place_prices
         .iter()
         .zip(place_odds)
-        .filter(|(price, odds)| price < &odds)
+        .filter(|(price, odds)| **price < *odds * value_tolerance)
         .count();
     SimulationResult {
         overbroke,

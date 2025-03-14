@@ -3,6 +3,8 @@ pub mod comb;
 pub mod dilative;
 pub mod each_way;
 pub mod harville;
+pub mod market;
 pub mod matrix;
+pub mod opt;
 pub mod probs;
 pub mod testing;

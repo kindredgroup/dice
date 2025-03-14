@@ -41,14 +41,26 @@ pub fn simulate(
         let contender_place_probs = contender(&win_probs, scenario.k);
         log::trace!("contender_place_probs={contender_place_probs:?}");
 
+        let mut local_sum_sq_err = 0.0;
+        let mut local_sum_sq_rel_err = 0.0;
         for (b, c) in benchmark_place_probs
             .iter()
             .zip(contender_place_probs.iter())
         {
             let err = b - c;
-            sum_sq_err += err * err;
+            local_sum_sq_err += err * err;
             let rel_err = err / b;
-            sum_sq_rel_err += rel_err * rel_err;
+            local_sum_sq_rel_err += rel_err * rel_err;
+        }
+        sum_sq_err += local_sum_sq_err;
+        sum_sq_rel_err += local_sum_sq_rel_err;
+
+        if (local_sum_sq_rel_err / win_probs.len() as f64).sqrt() > 1.0 {
+            log::warn!("RMSE={}", (local_sum_sq_err / win_probs.len() as f64).sqrt());
+            log::warn!("RMSRE={}", (local_sum_sq_rel_err / win_probs.len() as f64).sqrt());
+            log::warn!("win_probs={win_probs:?}");
+            log::warn!("benchmark_place_probs={benchmark_place_probs:?}");
+            log::warn!("contender_place_probs={contender_place_probs:?}");
         }
     }
     Stats {
