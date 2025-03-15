@@ -55,7 +55,7 @@ pub fn simulate(
         sum_sq_err += local_sum_sq_err;
         sum_sq_rel_err += local_sum_sq_rel_err;
 
-        if (local_sum_sq_rel_err / win_probs.len() as f64).sqrt() > 1.0 {
+        if (local_sum_sq_rel_err / win_probs.len() as f64).sqrt() > 0.1 {
             log::warn!("RMSE={}", (local_sum_sq_err / win_probs.len() as f64).sqrt());
             log::warn!("RMSRE={}", (local_sum_sq_rel_err / win_probs.len() as f64).sqrt());
             log::warn!("win_probs={win_probs:?}");

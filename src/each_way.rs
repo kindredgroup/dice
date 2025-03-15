@@ -1,11 +1,13 @@
 pub mod probs_sim;
 pub mod overbroke_sim;
 
+use std::ops::Div;
 use crate::capture::Capture;
 use crate::dilative::DilatedProbs;
-use crate::harville::harville_summary_condensed;
+use crate::harville::{harville_est, harville_summary, harville_summary_condensed};
 use crate::market::{Market, Overround, OverroundMethod, PriceBounds};
 use crate::matrix::Matrix;
+use crate::opt::{univariate_descent, UnivariateDescentConfig};
 use crate::probs::SliceExt;
 
 /// Converts win odds to place using naive (E/W) odds-ratio.
@@ -52,4 +54,37 @@ pub fn win_to_harville_place_probs(win_probs: &[f64], k: u8) -> Vec<f64> {
             .with_podium_places(k as usize),
     );
     harville_summary_condensed(&win_probs, k as usize)
+}
+
+/// Produces place probability estimates for `k` placings using an alternative Harville estimation method.
+pub fn win_to_est_place_probs(win_probs: &[f64], k: u8) -> Vec<f64> {
+    let rank_probs = (2..=k).map(|rank| harville_est(&win_probs, rank as usize, 1.0)).collect::<Vec<_>>();
+    win_probs.iter().enumerate().map(|(index, win_prob)| {
+        win_prob + rank_probs.iter().map(|probs| probs[index]).sum::<f64>()
+    }).collect()
+}
+
+pub fn win_to_opt_place_probs(win_probs: &[f64], k: u8, opt_rank: u8) -> Vec<f64> {
+    let harville = harville_summary(&Matrix::from(
+        DilatedProbs::default()
+            .with_win_probs(Capture::Borrowed(win_probs))
+            .with_podium_places(opt_rank as usize),
+    ), opt_rank as usize);
+    let harville = &harville[opt_rank as usize - 1];
+    let outcome = univariate_descent(&UnivariateDescentConfig {
+        init_value: 1.1,
+        init_step: 0.1,
+        min_step: 0.001,
+        max_steps: 1000,
+        acceptable_residual: 0.0001
+    }, |value| {
+        let est = harville_est(&win_probs, opt_rank as usize, value);
+        let sq_err = est.iter().zip(harville.iter()).map(|(est, harv)| (est - harv).powi(2)).sum::<f64>();
+        sq_err.div(est.len() as f64).sqrt()
+    });
+    log::trace!("opt. outcome={outcome:?}");
+    let rank_probs = (2..=k).map(|rank| harville_est(&win_probs, rank as usize, outcome.optimal_value)).collect::<Vec<_>>();
+    win_probs.iter().enumerate().map(|(index, win_prob)| {
+        win_prob + rank_probs.iter().map(|probs| probs[index]).sum::<f64>()
+    }).collect()
 }

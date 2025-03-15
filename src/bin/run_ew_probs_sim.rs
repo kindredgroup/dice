@@ -1,5 +1,5 @@
 use dice::each_way::probs_sim::{Scenario, Stats};
-use dice::each_way::{probs_sim, win_to_baor_place_probs, win_to_harville_place_probs};
+use dice::each_way::{probs_sim, win_to_baor_place_probs, win_to_est_place_probs, win_to_harville_place_probs, win_to_opt_place_probs};
 use stanza::renderer::Renderer;
 use stanza::renderer::markdown::Markdown;
 use stanza::style::{HAlign, Header, Styles};
@@ -17,6 +17,9 @@ fn main() {
         Scenario { field: 12, k: 3 },
         Scenario { field: 18, k: 3 },
         Scenario { field: 18, k: 4 },
+        Scenario { field: 20, k: 3 },
+        Scenario { field: 20, k: 4 },
+        Scenario { field: 20, k: 5 },
         Scenario { field: 24, k: 3 },
         Scenario { field: 24, k: 4 },
         Scenario { field: 24, k: 5 },
@@ -59,7 +62,10 @@ fn simulate_all(scenarios: Vec<Scenario>) -> Vec<(Scenario, Stats)> {
                 TRIALS,
                 &mut rand,
                 &win_to_harville_place_probs,
-                &win_to_baor_place_probs,
+                // &win_to_est_place_probs,
+                &|win_probs, k| {
+                    win_to_opt_place_probs(win_probs, k, std::cmp::min(k - 1, 3))
+                }
             );
             (scenario, stats)
         })

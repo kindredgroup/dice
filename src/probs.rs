@@ -42,6 +42,14 @@ pub trait SliceExt {
 
     /// Total sum of squares.
     fn sst(&self) -> f64;
+    
+    fn min(&self) -> f64;
+    
+    fn max(&self) -> f64;
+    
+    /// Iteratively redistributes probabilities so that no element exceeds 1.0 and any excess
+    /// is uniformly distributed among the remaining elements.
+    fn redistribute(&mut self);
 }
 impl SliceExt for [f64] {
     fn sum(&self) -> f64 {
@@ -189,6 +197,31 @@ impl SliceExt for [f64] {
         let mean = self.mean();
         self.iter().map(|value| (mean - value).powi(2)).sum()
     }
+    
+    fn min(&self) -> f64 {
+        self.iter().map(|item| *item).reduce(|a, b| a.min(b)).unwrap()
+    }
+
+    fn max(&self) -> f64 {
+        self.iter().map(|item| *item).reduce(|a, b| a.max(b)).unwrap()
+    }
+
+    fn redistribute(&mut self) {
+        let orig_sum = self.sum();
+        let max = self.max();
+        self.scale(1.0 / max);
+        
+        loop {
+            let sum = self.sum(); //TODO this iteration can be optimised
+            while sum < orig_sum {
+                let capped_count = self.iter().filter(|&&p| p >= 1.0).count() as f64;
+                let scale = (orig_sum - capped_count) / (sum - capped_count);
+                for p in &mut self.iter_mut() {
+                    *p = f64::min(*p * scale, 1.0);
+                }
+            }
+        }
+    }
 }
 
 #[inline]
@@ -312,7 +345,14 @@ mod tests {
     
     #[test]
     fn fill_random_probs() {
-        let mut data = (0..100).map(|_| 0.0).collect::<Vec<_>>();
+        let mut data = (0..20).map(|_| 0.0).collect::<Vec<_>>();
+        data.fill_random_probs(&mut StdRand::default(), 1.0);
+        assert_f64_near!(1.0, data.sum());
+    }
+
+    #[test]
+    fn fill_random_probs_exp() {
+        let mut data = (0..20).map(|_| 0.0).collect::<Vec<_>>();
         data.fill_random_probs(&mut StdRand::default(), 1.0);
         assert_f64_near!(1.0, data.sum());
     }

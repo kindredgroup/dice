@@ -1,5 +1,6 @@
 use crate::comb::{count_permutations, is_unique_linear, pick};
 use crate::matrix::Matrix;
+use crate::probs::SliceExt;
 
 pub fn harville(probs: &Matrix<f64>, podium: &[usize]) -> f64 {
     let mut combined_prob = 1.;
@@ -162,6 +163,19 @@ pub fn harville_3(probs: &[f64]) -> Vec<f64> {
     }
     
     place_probs
+}
+
+pub fn harville_est(probs: &[f64], rank: usize, lambda: f64) -> Vec<f64> {
+    let len_sub_1 = probs.len() as f64 - 1.0;
+    let mut rank_probs = probs.iter().map(|win_prob| {
+        let r = ((1.0 - win_prob)/len_sub_1).powf(lambda);
+        let numer = r.powi((rank - 1) as i32) * win_prob;
+        let denom = (2..=rank).map(|j| 1.0 - r.powi((j - 1) as i32)).product::<f64>();
+        //println!("r={r}, numer={numer}, denom={denom}");
+        numer / denom
+    }).collect::<Vec<_>>();
+    rank_probs.normalise(1.0);
+    rank_probs
 }
 
 #[cfg(test)]
@@ -591,5 +605,78 @@ mod tests {
             let col_cells = summary.col(col);
             assert_float_relative_eq!(1.0, col_cells.sum::<f64>());
         }
+    }
+
+    // Actual Harville for [0.4, 0.3, 0.2, 0.1]
+    // [0.4000000000000016, 0.30000000000000104, 0.2000000000000007, 0.10000000000000028]
+    // [0.315873015873017, 0.3083333333333345, 0.24126984126984216, 0.13452380952380988]
+    // [0.2063492063492071, 0.2619047619047629, 0.3174603174603188, 0.21428571428571486]
+    // [0.07777777777777792, 0.12976190476190508, 0.24126984126984197, 0.5511904761904786] 
+
+    #[test]
+    fn harville_est_1x4() {
+        const WIN_PROBS: [f64; 4] = [0.4, 0.3, 0.2, 0.1];
+        let rank_probs = harville_est(&WIN_PROBS, 1, 1.0);
+        assert_slice_f64_relative(
+            &[
+                0.4,
+                0.3,
+                0.2,
+                0.1,
+            ],
+            &rank_probs,
+            1e-9,
+        );
+    }
+
+    #[test]
+    fn harville_est_2x4() {
+        const WIN_PROBS: [f64; 4] = [0.4, 0.3, 0.2, 0.1];
+        let rank_probs = harville_est(&WIN_PROBS, 2, 1.0);
+        println!("rank_probs={rank_probs:?}");
+        assert_slice_f64_relative(
+            &[
+                0.32585096596136154,
+                0.2975160993560257,
+                0.23698252069917203,
+                0.13965041398344066,
+            ],
+            &rank_probs,
+            1e-9,
+        );
+    }
+
+    #[test]
+    fn harville_est_3x4() {
+        const WIN_PROBS: [f64; 4] = [0.4, 0.3, 0.2, 0.1];
+        let rank_probs = harville_est(&WIN_PROBS, 3, 1.0);
+        println!("rank_probs={rank_probs:?}");
+        assert_slice_f64_relative(
+            &[
+                0.2658271045738685,
+                0.28748930412403045,
+                0.26640524094745244,
+                0.18027835035464868,
+            ],
+            &rank_probs,
+            1e-9,
+        );
+    }
+
+    #[test]
+    fn harville_est_4x4() {
+        const WIN_PROBS: [f64; 4] = [0.4, 0.3, 0.2, 0.1];
+        let rank_probs = harville_est(&WIN_PROBS, 4, 1.0);
+        println!("rank_probs={rank_probs:?}");
+        assert_slice_f64_relative(
+            &[
+                0.21477443749102987,
+                0.2722801460997806,
+                0.29019578417201364,
+                0.2227496322371759,
+            ],
+            &rank_probs,
+            1e-9,
+        );
     }
 }
