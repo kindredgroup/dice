@@ -165,12 +165,12 @@ pub fn harville_3(probs: &[f64]) -> Vec<f64> {
     place_probs
 }
 
-pub fn harville_est(probs: &[f64], rank: usize, lambda: f64) -> Vec<f64> {
+pub fn harville_est(probs: &[f64], rank_idx: usize, lambda: f64) -> Vec<f64> {
     let len_sub_1 = probs.len() as f64 - 1.0;
     let mut rank_probs = probs.iter().map(|win_prob| {
         let r = ((1.0 - win_prob)/len_sub_1).powf(lambda);
-        let numer = r.powi((rank - 1) as i32) * win_prob;
-        let denom = (2..=rank).map(|j| 1.0 - r.powi((j - 1) as i32)).product::<f64>();
+        let numer = r.powi(rank_idx as i32) * win_prob;
+        let denom = (2..=rank_idx + 1).map(|j| 1.0 - r.powi((j - 1) as i32)).product::<f64>();
         //println!("r={r}, numer={numer}, denom={denom}");
         numer / denom
     }).collect::<Vec<_>>();
@@ -616,7 +616,7 @@ mod tests {
     #[test]
     fn harville_est_1x4() {
         const WIN_PROBS: [f64; 4] = [0.4, 0.3, 0.2, 0.1];
-        let rank_probs = harville_est(&WIN_PROBS, 1, 1.0);
+        let rank_probs = harville_est(&WIN_PROBS, 0, 1.0);
         assert_slice_f64_relative(
             &[
                 0.4,
@@ -632,7 +632,7 @@ mod tests {
     #[test]
     fn harville_est_2x4() {
         const WIN_PROBS: [f64; 4] = [0.4, 0.3, 0.2, 0.1];
-        let rank_probs = harville_est(&WIN_PROBS, 2, 1.0);
+        let rank_probs = harville_est(&WIN_PROBS, 1, 1.0);
         println!("rank_probs={rank_probs:?}");
         assert_slice_f64_relative(
             &[
@@ -649,7 +649,7 @@ mod tests {
     #[test]
     fn harville_est_3x4() {
         const WIN_PROBS: [f64; 4] = [0.4, 0.3, 0.2, 0.1];
-        let rank_probs = harville_est(&WIN_PROBS, 3, 1.0);
+        let rank_probs = harville_est(&WIN_PROBS, 2, 1.0);
         println!("rank_probs={rank_probs:?}");
         assert_slice_f64_relative(
             &[
@@ -666,7 +666,7 @@ mod tests {
     #[test]
     fn harville_est_4x4() {
         const WIN_PROBS: [f64; 4] = [0.4, 0.3, 0.2, 0.1];
-        let rank_probs = harville_est(&WIN_PROBS, 4, 1.0);
+        let rank_probs = harville_est(&WIN_PROBS, 3, 1.0);
         println!("rank_probs={rank_probs:?}");
         assert_slice_f64_relative(
             &[
