@@ -209,15 +209,23 @@ impl SliceExt for [f64] {
     fn redistribute(&mut self) {
         let orig_sum = self.sum();
         let max = self.max();
-        self.scale(1.0 / max);
-        
-        loop {
-            let sum = self.sum(); //TODO this iteration can be optimised
-            while sum < orig_sum {
-                let capped_count = self.iter().filter(|&&p| p >= 1.0).count() as f64;
-                let scale = (orig_sum - capped_count) / (sum - capped_count);
+        if max > 1.0 {
+            self.scale(1.0 / max);
+            let mut sum = orig_sum / max;
+            let mut capped_count = 1;
+            loop {
+                if sum >= orig_sum {
+                    break;
+                }
+                let scale = (orig_sum - capped_count as f64) / (sum - capped_count as f64);
+                sum = 0.0;
+                capped_count = 0;
                 for p in &mut self.iter_mut() {
                     *p = f64::min(*p * scale, 1.0);
+                    sum += *p;
+                    if *p >= 1.0 {
+                        capped_count += 1;
+                    }
                 }
             }
         }
@@ -362,5 +370,29 @@ mod tests {
         let data = [0.1, 0.2, 0.3, 0.4];
         // expect sst = (.1-.25)^2+(.2-.25)^2+(.3-.25)^2+(.4-.25)^2
         assert_f64_near!(0.05, data.sst());
+    }
+
+    #[test]
+    fn redistribute_no_caps() {
+        let mut data = [0.95, 0.95, 0.85, 0.55, 0.5];
+        data.redistribute();
+        println!("data={data:?}");
+        assert_slice_f64_relative(&[0.95, 0.95, 0.85, 0.55, 0.5], &data, 1e-9);
+    }
+
+    #[test]
+    fn redistribute_one_caps() {
+        let mut data = [1.1, 0.9, 0.85, 0.65, 0.5];
+        data.redistribute();
+        println!("data={data:?}");
+        assert_slice_f64_relative(&[1.0, 0.9310344827586207, 0.8793103448275862, 0.6724137931034483, 0.5172413793103449], &data, 1e-9);
+    }
+
+    #[test]
+    fn redistribute_two_caps() {
+        let mut data = [1.2, 0.95, 0.85, 0.55, 0.45];
+        data.redistribute();
+        println!("data={data:?}");
+        assert_slice_f64_relative(&[1.0, 1.0, 0.9189189189189191, 0.5945945945945946, 0.4864864864864865], &data, 1e-9);
     }
 }

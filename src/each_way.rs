@@ -58,9 +58,9 @@ pub fn win_to_harville_place_probs(win_probs: &[f64], k: u8) -> Vec<f64> {
 
 /// Produces place probability estimates for `k` placings using an alternative Harville estimation method.
 pub fn win_to_est_place_probs(win_probs: &[f64], k: u8) -> Vec<f64> {
-    let rank_probs = (2..=k).map(|rank| harville_est(&win_probs, rank as usize, 1.0)).collect::<Vec<_>>();
+    let all_rank_probs = (2..=k).map(|rank| harville_est(&win_probs, rank as usize, 1.0)).collect::<Vec<_>>();
     win_probs.iter().enumerate().map(|(index, win_prob)| {
-        win_prob + rank_probs.iter().map(|probs| probs[index]).sum::<f64>()
+        win_prob + all_rank_probs.iter().map(|probs| probs[index]).sum::<f64>()
     }).collect()
 }
 
@@ -83,8 +83,10 @@ pub fn win_to_opt_place_probs(win_probs: &[f64], k: u8, opt_rank: u8) -> Vec<f64
         sq_err.div(est.len() as f64).sqrt()
     });
     log::trace!("opt. outcome={outcome:?}");
-    let rank_probs = (2..=k).map(|rank| harville_est(&win_probs, rank as usize, outcome.optimal_value)).collect::<Vec<_>>();
-    win_probs.iter().enumerate().map(|(index, win_prob)| {
-        win_prob + rank_probs.iter().map(|probs| probs[index]).sum::<f64>()
-    }).collect()
+    let all_rank_probs = (2..=k).map(|rank| harville_est(&win_probs, rank as usize, outcome.optimal_value)).collect::<Vec<_>>();
+    let mut place_probs = win_probs.iter().enumerate().map(|(index, win_prob)| {
+        win_prob + all_rank_probs.iter().map(|rank_probs| rank_probs[index]).sum::<f64>()
+    }).collect::<Vec<_>>();
+    place_probs.redistribute();
+    place_probs
 }
