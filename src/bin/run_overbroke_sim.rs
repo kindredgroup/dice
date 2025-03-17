@@ -330,7 +330,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -338,7 +338,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -346,7 +346,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -354,7 +354,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -362,7 +362,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -370,7 +370,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -378,7 +378,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -386,7 +386,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -394,7 +394,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -402,7 +402,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -410,7 +410,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -418,7 +418,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -426,7 +426,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -434,7 +434,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -442,7 +442,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -450,7 +450,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -458,7 +458,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -466,7 +466,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -474,7 +474,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -482,7 +482,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -490,7 +490,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -498,7 +498,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -506,7 +506,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -514,7 +514,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -522,7 +522,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -530,7 +530,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -538,7 +538,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -546,7 +546,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -554,7 +554,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -562,7 +562,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -570,7 +570,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -578,7 +578,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -586,7 +586,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -594,7 +594,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -602,7 +602,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -610,7 +610,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -618,7 +618,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -626,7 +626,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -634,7 +634,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -642,7 +642,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -650,7 +650,7 @@ fn main() {
             k: 5,
             d: 5,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -658,7 +658,7 @@ fn main() {
             k: 5,
             d: 6,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -666,7 +666,7 @@ fn main() {
             k: 5,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 50,
@@ -674,7 +674,7 @@ fn main() {
             k: 5,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -682,7 +682,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -690,7 +690,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -698,7 +698,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -706,7 +706,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -714,7 +714,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -722,7 +722,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -730,7 +730,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -738,7 +738,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -746,7 +746,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -754,7 +754,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -762,7 +762,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -770,7 +770,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -778,7 +778,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -786,7 +786,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -794,7 +794,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -802,7 +802,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -810,7 +810,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -818,7 +818,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -826,7 +826,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -834,7 +834,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -842,7 +842,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -850,7 +850,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -858,7 +858,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -866,7 +866,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -874,7 +874,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -882,7 +882,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -890,7 +890,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -898,7 +898,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -906,7 +906,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -914,7 +914,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -922,7 +922,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -930,7 +930,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -938,7 +938,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -946,7 +946,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -954,7 +954,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -962,7 +962,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -970,7 +970,7 @@ fn main() {
             k: 7,
             d: 7,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -978,7 +978,7 @@ fn main() {
             k: 7,
             d: 8,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -986,7 +986,7 @@ fn main() {
             k: 7,
             d: 9,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -994,7 +994,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         },
         Scenario {
             field: 100,
@@ -1002,7 +1002,7 @@ fn main() {
             k: 7,
             d: 10,
             target_place_overround: 1.10,
-            estimator: Estimator::BAOR
+            estimator: Estimator::Upscaling(2)
         }
     ]);
 

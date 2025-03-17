@@ -7,4 +7,5 @@ pub mod market;
 pub mod matrix;
 pub mod opt;
 pub mod probs;
+pub mod random;
 pub mod testing;

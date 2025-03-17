@@ -1,6 +1,7 @@
-use crate::each_way::{win_to_baor_place_probs, win_to_harville_place_probs, win_to_place_odds};
+use crate::each_way::{win_to_baor_place_probs, win_to_harville_place_probs, win_to_opt_place_probs, win_to_place_odds};
 use crate::probs::SliceExt;
 use tinyrand::Rand;
+use crate::random;
 
 /// Scale parameter for the exponential probability allocator.
 const BETA: f64 = 0.25;
@@ -8,14 +9,16 @@ const BETA: f64 = 0.25;
 #[derive(Debug)]
 pub enum Estimator {
     Harville,
-    BAOR
+    BAOR,
+    Upscaling(u8)
 }
 
 impl Estimator {
     fn win_to_place_probs(&self, win_probs: &[f64], k: u8) -> Vec<f64> {
         match self {
             Estimator::Harville => win_to_harville_place_probs(win_probs, k),
-            Estimator::BAOR => win_to_baor_place_probs(win_probs, k)
+            Estimator::BAOR => win_to_baor_place_probs(win_probs, k),
+            Estimator::Upscaling(max_fit_rank) => win_to_opt_place_probs(win_probs, k, std::cmp::min(k - 2, *max_fit_rank)),
         }
     }
 }
@@ -124,7 +127,7 @@ fn simulate_one(scenario: &Scenario, rand: &mut impl Rand) -> SimulationResult {
 
 fn generate_random_probs(field: usize, rand: &mut impl Rand) -> Vec<f64> {
     let mut probs = (0..field).map(|_| 0.0).collect::<Vec<_>>();
-    probs.fill_random_probs_exp(rand, BETA,1.0);
+    probs.fill_random_probs_exp(rand, &random::gaussian_3_sigma, BETA,1.0);
     probs
 }
 

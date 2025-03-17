@@ -1,5 +1,6 @@
 use crate::probs::SliceExt;
 use tinyrand::Rand;
+use crate::random;
 
 /// Scale parameter for the exponential probability allocator.
 const BETA: f64 = 0.25;
@@ -71,6 +72,6 @@ pub fn simulate(
 
 fn generate_random_probs(field: usize, rand: &mut impl Rand) -> Vec<f64> {
     let mut probs = (0..field).map(|_| 0.0).collect::<Vec<_>>();
-    probs.fill_random_probs_exp(rand, BETA, 1.0);
+    probs.fill_random_probs_exp(rand, &random::gaussian_3_sigma, BETA, 1.0);
     probs
 }

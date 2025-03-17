@@ -12,16 +12,16 @@ fn main() {
     env_logger::init();
 
     let results = simulate_all(vec![
-        Scenario { field: 8, k: 2 },
-        Scenario { field: 12, k: 2 },
-        Scenario { field: 12, k: 3 },
-        Scenario { field: 18, k: 3 },
-        Scenario { field: 18, k: 4 },
-        Scenario { field: 20, k: 3 },
+        // Scenario { field: 8, k: 2 },
+        // Scenario { field: 12, k: 2 },
+        // Scenario { field: 12, k: 3 },
+        // Scenario { field: 18, k: 3 },
+        // Scenario { field: 18, k: 4 },
+        // Scenario { field: 20, k: 3 },
         // Scenario { field: 20, k: 4 },
         // Scenario { field: 20, k: 5 },
-        // Scenario { field: 20, k: 6},
-        // Scenario { field: 20, k: 7},
+        Scenario { field: 20, k: 6},
+        Scenario { field: 20, k: 7},
         // Scenario { field: 24, k: 3 },
         // Scenario { field: 24, k: 4 },
         // Scenario { field: 24, k: 5 },
@@ -64,9 +64,8 @@ fn simulate_all(scenarios: Vec<Scenario>) -> Vec<(Scenario, Stats)> {
                 TRIALS,
                 &mut rand,
                 &win_to_harville_place_probs,
-                // &win_to_est_place_probs,
                 &|win_probs, k| {
-                    win_to_opt_place_probs(win_probs, k, std::cmp::min(k - 2, 1))
+                    win_to_opt_place_probs(win_probs, k, std::cmp::min(k - 2, 2))
                 }
             );
             (scenario, stats)

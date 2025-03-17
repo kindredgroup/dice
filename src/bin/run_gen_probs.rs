@@ -4,9 +4,10 @@ use stanza::renderer::markdown::Markdown;
 use stanza::style::{HAlign, Header, Styles};
 use stanza::table::{Col, Row, Table};
 use tinyrand::{Rand, StdRand};
+use dice::random;
 
 const FIELD: usize = 25;
-const RUNS: usize = 10;
+const RUNS: usize = 100;
 
 /// Scale parameter for the exponential probability allocator.
 const BETA: f64 = 0.25;
@@ -55,6 +56,6 @@ fn main() {
 
 fn generate_random_probs(field: usize, rand: &mut impl Rand) -> Vec<f64> {
     let mut probs = (0..field).map(|_| 0.0).collect::<Vec<_>>();
-    probs.fill_random_probs_exp(rand, BETA, 1.0);
+    probs.fill_random_probs_exp(rand, &random::gaussian_3_sigma, BETA, 1.0);
     probs
 }

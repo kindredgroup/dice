@@ -21,7 +21,7 @@ pub trait SliceExt {
     fn variance(&self) -> f64;
     fn stdev(&self) -> f64;
     fn booksum(&self) -> f64;
-    fn fill_random_probs(&mut self, rand: &mut impl Rand, normal: f64);
+    fn fill_random_probs<R: Rand, D: Fn(&mut R) -> f64>(&mut self, rand: &mut R, distribution: &D, sum: f64);
     
     /// Fills the slice with randomly assigned probabilities skewed to favour
     /// decreasing order (higher probabilities more likely appearing in the beginning). 
@@ -38,7 +38,7 @@ pub trait SliceExt {
     /// 
     /// Over an infinite number of trials, the probabilities converge on an exponential that can 
     /// be varied with the scale parameter `beta`.
-    fn fill_random_probs_exp(&mut self, rand: &mut impl Rand, beta: f64, normal: f64);
+    fn fill_random_probs_exp<R: Rand, D: Fn(&mut R) -> f64>(&mut self, rand: &mut R, distribution: &D, beta: f64, sum: f64);
 
     /// Total sum of squares.
     fn sst(&self) -> f64;
@@ -52,25 +52,30 @@ pub trait SliceExt {
     fn redistribute(&mut self);
 }
 impl SliceExt for [f64] {
+    #[inline]
     fn sum(&self) -> f64 {
         self.iter().sum()
     }
 
+    #[inline]
     fn normalise(&mut self, target: f64) -> f64 {
         let sum = self.sum();
         self.scale(target / sum);
         sum
     }
 
+    #[inline]
     fn invert(&self) -> Map<Iter<f64>, fn(&f64) -> f64> {
         self.iter().map(|value| 1.0 / value)
     }
 
+    #[inline]
     fn geometric_mean(&self) -> f64 {
         let product: f64 = self.iter().product();
         product.powf(1.0 / self.len() as f64)
     }
 
+    #[inline]
     fn dilate_additive(&mut self, factor: f64) {
         #[inline(always)]
         fn dilate_additive_pve(slice: &mut [f64], factor: f64) {
@@ -98,23 +103,24 @@ impl SliceExt for [f64] {
         }
     }
 
+    #[inline]
     fn dilate_power(&mut self, factor: f64) {
         let mut sum = 0.0;
         for element in &mut *self {
-            // if *element > 0.02 {//TODO
             *element = element.powf(1.0 - factor);
-            // }
             sum += *element;
         }
         self.scale(1.0 / sum);
     }
 
+    #[inline]
     fn scale(&mut self, factor: f64) {
         for element in self {
             *element *= factor;
         }
     }
 
+    #[inline]
     fn scale_rows(&self, target: &mut Matrix<f64>) {
         debug_assert_eq!(
             target.rows(),
@@ -129,6 +135,7 @@ impl SliceExt for [f64] {
         }
     }
 
+    #[inline]
     fn dilate_rows_additive(&self, matrix: &mut Matrix<f64>) {
         debug_assert_eq!(
             self.len(),
@@ -143,6 +150,7 @@ impl SliceExt for [f64] {
         }
     }
 
+    #[inline]
     fn dilate_rows_power(&self, matrix: &mut Matrix<f64>) {
         debug_assert_eq!(
             self.len(),
@@ -157,55 +165,65 @@ impl SliceExt for [f64] {
         }
     }
 
+    #[inline]
     fn mean(&self) -> f64 {
         self.sum() / self.len() as f64
     }
 
+    #[inline]
     fn variance(&self) -> f64 {
         let mean = self.mean();
         let sum_of_squares: f64 = self.iter().map(|sample| (sample - mean).powi(2)).sum();
         sum_of_squares / (self.len() - 1) as f64
     }
 
+    #[inline]
     fn stdev(&self) -> f64 {
         self.variance().sqrt()
     }
 
+    #[inline]
     fn booksum(&self) -> f64 {
         self.invert().sum()
     }
 
-    fn fill_random_probs(&mut self, rand: &mut impl Rand, normal: f64) {
+    #[inline]
+    fn fill_random_probs<R: Rand, D: Fn(&mut R) -> f64>(&mut self, rand: &mut R, distribution: &D, sum: f64) {
         for prob in self.iter_mut() {
-            *prob = random_f64(rand);
+            *prob = distribution(rand);
         }
-        self.normalise(normal);
+        self.normalise(sum);
     }
 
-    fn fill_random_probs_exp(&mut self, rand: &mut impl Rand, beta: f64, normal: f64) {
+    #[inline]
+    fn fill_random_probs_exp<R: Rand, D: Fn(&mut R) -> f64>(&mut self, rand: &mut R, distribution: &D, beta: f64, sum: f64) {
         let mut remaining = 1.0;
         let len = self.len();
         let scale = 1.0 / (len as f64).powf(beta);
         for prob in self.iter_mut() {
-            *prob = random_f64(rand) * remaining * scale;
+            *prob = distribution(rand) * remaining * scale;
             remaining -= *prob;
         }
-        self.normalise(normal); // force the probs to sum to the normal value
+        self.normalise(sum);
     }
 
+    #[inline]
     fn sst(&self) -> f64 {
         let mean = self.mean();
         self.iter().map(|value| (mean - value).powi(2)).sum()
     }
-    
+
+    #[inline]
     fn min(&self) -> f64 {
         self.iter().map(|item| *item).reduce(|a, b| a.min(b)).unwrap()
     }
 
+    #[inline]
     fn max(&self) -> f64 {
         self.iter().map(|item| *item).reduce(|a, b| a.max(b)).unwrap()
     }
 
+    #[inline]
     fn redistribute(&mut self) {
         let orig_sum = self.sum();
         let max = self.max();
@@ -232,11 +250,6 @@ impl SliceExt for [f64] {
     }
 }
 
-#[inline]
-pub fn random_f64(rand: &mut impl Rand) -> f64 {
-    rand.next_u64() as f64 / u64::MAX as f64
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct Fraction {
     pub numerator: u64,
@@ -261,6 +274,7 @@ mod tests {
     use crate::testing::{assert_slice_f64_near, assert_slice_f64_relative};
     use assert_float_eq::*;
     use tinyrand::StdRand;
+    use crate::random;
 
     #[test]
     fn sum() {
@@ -354,14 +368,14 @@ mod tests {
     #[test]
     fn fill_random_probs() {
         let mut data = (0..20).map(|_| 0.0).collect::<Vec<_>>();
-        data.fill_random_probs(&mut StdRand::default(), 1.0);
+        data.fill_random_probs(&mut StdRand::default(), &random::uniform, 1.0);
         assert_f64_near!(1.0, data.sum());
     }
 
     #[test]
     fn fill_random_probs_exp() {
         let mut data = (0..20).map(|_| 0.0).collect::<Vec<_>>();
-        data.fill_random_probs(&mut StdRand::default(), 1.0);
+        data.fill_random_probs(&mut StdRand::default(), &random::uniform, 1.0);
         assert_f64_near!(1.0, data.sum());
     }
 
