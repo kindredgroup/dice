@@ -1,0 +1,111 @@
+use dice::capture::Capture;
+use dice::dilative::DilatedProbs;
+use dice::harville::harville_summary;
+use dice::matrix::Matrix;
+use dice::probs::SliceExt;
+use stanza::renderer::markdown::Markdown;
+use stanza::renderer::Renderer;
+use stanza::style::{Header, Styles};
+use stanza::table::{Row, Table};
+
+fn main() {
+    env_logger::init();
+
+    let win_probs = vec![
+        0.3133715135010454,
+        0.21974565615291924,
+        0.15925657096461188,
+        0.11003606943945052,
+        0.07718504101678533,
+        0.054988279068626925,
+        0.038739210464234584,
+        0.026677659392326553,
+    ];
+    let k = win_probs.len();
+    
+    {
+        let table = Table::default()
+            .with_row(Row::new(
+                Styles::default().with(Header(true)),
+                (1..=win_probs.len())
+                    .map(|i| format!("{i}").into())
+                    .collect(),
+            ))
+            .with_row(Row::new(
+                Styles::default(),
+                win_probs
+                    .iter()
+                    .map(|prob| format!("{prob:.4}").into())
+                    .collect(),
+            ));
+        log::info!("Win probs:\n{}", Markdown::default().render(&table));
+    }
+
+    let rank_probs = harville(&win_probs, k);
+    {
+        let table = Table::default()
+            .with_row(Row::new(
+                Styles::default().with(Header(true)),
+                (1..=win_probs.len())
+                    .map(|i| format!("{i}").into())
+                    .collect(),
+            ))
+            .with_rows(rank_probs.into_iter().map(|probs| {
+                Row::new(
+                    Styles::default(),
+                    probs
+                        .iter()
+                        .map(|prob| format!("{prob:.4}").into())
+                        .collect(),
+                )
+            }));
+        log::info!("Rank matrix:\n{}", Markdown::default().render(&table));
+    }
+    
+    let row_sums = rank_probs.into_iter().map(|probs| probs.sum()).collect::<Vec<_>>();
+    {
+        let table = Table::default()
+            .with_row(Row::new(
+                Styles::default().with(Header(true)),
+                (1..=k)
+                    .map(|i| format!("{i}").into())
+                    .collect(),
+            ))
+            .with_row(Row::new(
+                Styles::default(),
+                row_sums
+                    .iter()
+                    .map(|row_sum| format!("{row_sum:.4}").into())
+                    .collect(),
+            ));
+        log::info!("Row sums:\n{}", Markdown::default().render(&table));
+    }
+
+    let col_sums = rank_probs.transpose().into_iter().map(|probs| probs.sum()).collect::<Vec<_>>();
+    {
+        let table = Table::default()
+            .with_row(Row::new(
+                Styles::default().with(Header(true)),
+                (1..=k)
+                    .map(|i| format!("{i}").into())
+                    .collect(),
+            ))
+            .with_row(Row::new(
+                Styles::default(),
+                col_sums
+                    .iter()
+                    .map(|col_sum| format!("{col_sum:.4}").into())
+                    .collect(),
+            ));
+        log::info!("Col sums:\n{}", Markdown::default().render(&table));
+    }
+}
+
+fn harville(win_probs: &[f64], k: usize) -> Matrix<f64> {
+    let dilated_probs = Matrix::from(
+        DilatedProbs::default()
+            .with_win_probs(Capture::Borrowed(win_probs))
+            .with_podium_places(k),
+    );
+    harville_summary(&dilated_probs, k)
+}

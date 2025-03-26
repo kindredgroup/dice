@@ -6,8 +6,8 @@ use stanza::table::{Col, Row, Table};
 use tinyrand::{Rand, StdRand};
 use dice::random;
 
-const FIELD: usize = 25;
-const RUNS: usize = 100;
+const FIELD: usize = 8;
+const RUNS: usize = 1000;
 
 /// Scale parameter for the exponential probability allocator.
 const BETA: f64 = 0.25;

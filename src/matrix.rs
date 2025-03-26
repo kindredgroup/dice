@@ -97,6 +97,16 @@ impl<T> Matrix<T> {
         &mut self.data
     }
 
+    pub fn transpose(&self) -> Matrix<T> where T: Default + Copy {
+        let mut target = Matrix::<T>::allocate(self.cols, self.rows);
+        for row in 0..self.rows {
+            for col in 0..self.cols() {
+                target[(col, row)] = self[(row, col)];
+            }
+        }
+        target
+    }
+
     fn validate_row_index(&self, row: usize) -> bool {
         assert!(
             row < self.rows,
@@ -389,5 +399,16 @@ mod tests {
         for row in matrix.into_iter() {
             assert_eq!([0.0, 0.0], row);
         }
+    }
+    
+    #[test]
+    fn transpose() {
+        let mut matrix = Matrix::allocate(3, 2);
+        populate_with_test_data(&mut matrix);
+        
+        let transposed = matrix.transpose();
+        assert_eq!(3, transposed.cols());
+        assert_eq!(2, transposed.rows());
+        assert_eq!(&[0.0, 20.0, 40.0, 10.0, 30.0, 50.0], transposed.flatten());
     }
 }
