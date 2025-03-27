@@ -1,9 +1,12 @@
-use crate::comb::{count_permutations, count_states, is_unique_linear, pick_permutation, pick_state};
+use crate::comb::{
+    count_permutations, count_states, is_unique_linear, pick_permutation, pick_state,
+};
 use crate::matrix::Matrix;
 use crate::probs::SliceExt;
 use std::cmp::max;
 use tinyrand::{Rand, StdRand};
 
+#[inline]
 pub fn harville(probs: &Matrix<f64>, podium: &[usize]) -> f64 {
     let mut combined_prob = 1.;
     // println!("probs: {probs:?}, podium: {podium:?}");
@@ -50,8 +53,16 @@ pub fn old_harville_summary_no_alloc(
         ranks,
         "number of rows in the probabilities matrix must equal to the number of ranks"
     );
-    debug_assert_eq!(summary.rows(), probs.rows(), "number of rows in the probabilities matrix must equal to the number of rows in the summary matrix");
-    debug_assert_eq!(summary.cols(), probs.cols(), "number of columns in the probabilities matrix must equal to the number of columns in the summary matrix");
+    debug_assert_eq!(
+        summary.rows(),
+        probs.rows(),
+        "number of rows in the probabilities matrix must equal to the number of rows in the summary matrix"
+    );
+    debug_assert_eq!(
+        summary.cols(),
+        probs.cols(),
+        "number of columns in the probabilities matrix must equal to the number of columns in the summary matrix"
+    );
     debug_assert_eq!(
         probs.rows(),
         podium.len(),
@@ -80,13 +91,7 @@ pub fn harville_summary(probs: &Matrix<f64>, ranks: usize) -> Matrix<f64> {
     let mut summary = Matrix::allocate(ranks, runners);
     let mut podium = vec![0; ranks];
     let mut bitmap = vec![false; runners];
-    harville_summary_no_alloc(
-        probs,
-        ranks,
-        &mut podium,
-        &mut bitmap,
-        &mut summary,
-    );
+    harville_summary_no_alloc(probs, ranks, &mut podium, &mut bitmap, &mut summary);
     summary
 }
 
@@ -102,8 +107,16 @@ pub fn harville_summary_no_alloc(
         ranks,
         "number of rows in the probabilities matrix must equal to the number of ranks"
     );
-    debug_assert_eq!(summary.rows(), probs.rows(), "number of rows in the probabilities matrix must equal to the number of rows in the summary matrix");
-    debug_assert_eq!(summary.cols(), probs.cols(), "number of columns in the probabilities matrix must equal to the number of columns in the summary matrix");
+    debug_assert_eq!(
+        summary.rows(),
+        probs.rows(),
+        "number of rows in the probabilities matrix must equal to the number of rows in the summary matrix"
+    );
+    debug_assert_eq!(
+        summary.cols(),
+        probs.cols(),
+        "number of columns in the probabilities matrix must equal to the number of columns in the summary matrix"
+    );
     debug_assert_eq!(
         probs.rows(),
         podium.len(),
@@ -125,13 +138,13 @@ pub fn harville_summary_no_alloc(
     }
 }
 
-pub fn inter_harville_summary(probs: &Matrix<f64>, ranks: usize, degree: usize) -> Matrix<f64> {
+pub fn poly_harville_summary(probs: &Matrix<f64>, ranks: usize, degree: usize) -> Matrix<f64> {
     let runners = probs.cols();
     let mut summary = Matrix::allocate(ranks, runners);
     let mut podium = vec![0; ranks];
     let mut bitmap = vec![false; runners];
     let mut rand = StdRand::default();
-    inter_harville_summary_no_alloc(
+    poly_harville_summary_no_alloc(
         probs,
         ranks,
         degree,
@@ -143,7 +156,7 @@ pub fn inter_harville_summary(probs: &Matrix<f64>, ranks: usize, degree: usize) 
     summary
 }
 
-pub fn inter_harville_summary_no_alloc(
+pub fn poly_harville_summary_no_alloc(
     probs: &Matrix<f64>,
     ranks: usize,
     degree: usize,
@@ -157,8 +170,16 @@ pub fn inter_harville_summary_no_alloc(
         ranks,
         "number of rows in the probabilities matrix must equal to the number of ranks"
     );
-    debug_assert_eq!(summary.rows(), probs.rows(), "number of rows in the probabilities matrix must equal to the number of rows in the summary matrix");
-    debug_assert_eq!(summary.cols(), probs.cols(), "number of columns in the probabilities matrix must equal to the number of columns in the summary matrix");
+    debug_assert_eq!(
+        summary.rows(),
+        probs.rows(),
+        "number of rows in the probabilities matrix must equal to the number of rows in the summary matrix"
+    );
+    debug_assert_eq!(
+        summary.cols(),
+        probs.cols(),
+        "number of columns in the probabilities matrix must equal to the number of columns in the summary matrix"
+    );
     debug_assert_eq!(
         probs.rows(),
         podium.len(),
@@ -172,13 +193,18 @@ pub fn inter_harville_summary_no_alloc(
     let runners = probs.cols();
     let total_permutations = count_permutations(runners, ranks);
     let capped_permutations = runners.pow(degree as u32);
-    let increment = max(1, total_permutations / capped_permutations);
+    let step = max(1, total_permutations / capped_permutations);
 
     let mut permutation = 0;
     let mut evaluated = 0;
     while permutation < total_permutations {
         pick_permutation(runners, permutation, bitmap, podium);
-        let jump = if increment > 1 { rand.next_lim_usize(increment * 2) + 1} else { 1 };
+        let jump = if step > 1 {
+            // rand.next_lim_usize(step * 2) + 1
+            rand.next_usize() % (step * 2) + 1
+        } else {
+            1
+        };
         // println!("jump={jump}");
         evaluated += 1;
         permutation += jump;
@@ -187,9 +213,12 @@ pub fn inter_harville_summary_no_alloc(
             summary[(rank, runner)] += prob;
         }
     }
-    log::trace!("total_permutations: {total_permutations}, capped_permutations: {capped_permutations}, increment: {increment}, evaluated: {evaluated} ({:.3}%)", evaluated as f64 / total_permutations as f64 * 100.0);
+    log::trace!(
+        "runners: {runners}, ranks: {ranks}, degree: {degree}, total perms: {total_permutations}, capped perms: {capped_permutations}, step: {step}, evaluated: {evaluated} ({:.6}%)",
+        evaluated as f64 / total_permutations as f64 * 100.0
+    );
 
-    if increment > 1 {
+    if step > 1 {
         for row_idx in 0..summary.rows() {
             summary.row_slice_mut(row_idx).normalise(1.0);
         }
@@ -227,7 +256,7 @@ pub fn inter_harville_summary_no_alloc(
 //     let capped_permutations = runners.pow(degree as u32 - 1);
 //     let increment = max(1, total_permutations / capped_permutations);
 //     log::trace!("total_permutations: {total_permutations}, capped_permutations: {capped_permutations}, increment: {increment}");
-// 
+//
 //     let max_debias = std::cmp::min(increment, runners);
 //     log::trace!("max_debias: {max_debias}");
 //     let mut evaluated = 0;
@@ -247,7 +276,7 @@ pub fn inter_harville_summary_no_alloc(
 //         }
 //     }
 //     log::trace!("evaluated: {evaluated}");
-// 
+//
 //     if increment > 1 {
 //         for row_idx in 0..summary.rows() {
 //             summary.row_slice_mut(row_idx).normalise(1.0);
@@ -283,7 +312,11 @@ pub fn harville_summary_condensed_no_alloc(
         ranks,
         "number of rows in the probabilities matrix must equal to the number of ranks"
     );
-    debug_assert_eq!(summary.len(), probs.cols(), "number of columns in the probabilities matrix must equal to the length of the summary slice");
+    debug_assert_eq!(
+        summary.len(),
+        probs.cols(),
+        "number of columns in the probabilities matrix must equal to the length of the summary slice"
+    );
     debug_assert_eq!(
         probs.rows(),
         podium.len(),
@@ -313,27 +346,33 @@ pub fn harville_3(probs: &[f64]) -> Vec<f64> {
             if j != i {
                 for k in 0..probs.len() {
                     if k != i && k != j {
-                        big_sum += probs[j] * probs[k] * probs[i] / (1.0 - probs[j] - probs[k]) / (1.0 - probs[j]);
+                        big_sum += probs[j] * probs[k] * probs[i]
+                            / (1.0 - probs[j] - probs[k])
+                            / (1.0 - probs[j]);
                     }
                 }
             }
-    
         }
         *place_prob = big_sum;
     }
-    
+
     place_probs
 }
 
 pub fn harville_est(probs: &[f64], rank_idx: usize, lambda: f64) -> Vec<f64> {
     let len_sub_1 = probs.len() as f64 - 1.0;
-    let mut rank_probs = probs.iter().map(|win_prob| {
-        let r = ((1.0 - win_prob)/len_sub_1).powf(lambda);
-        let numer = r.powi(rank_idx as i32) * win_prob;
-        let denom = (2..=rank_idx + 1).map(|j| 1.0 - r.powi((j - 1) as i32)).product::<f64>();
-        //println!("r={r}, numer={numer}, denom={denom}");
-        numer / denom
-    }).collect::<Vec<_>>();
+    let mut rank_probs = probs
+        .iter()
+        .map(|win_prob| {
+            let r = ((1.0 - win_prob) / len_sub_1).powf(lambda);
+            let numer = r.powi(rank_idx as i32) * win_prob;
+            let denom = (2..=rank_idx + 1)
+                .map(|j| 1.0 - r.powi((j - 1) as i32))
+                .product::<f64>();
+            //println!("r={r}, numer={numer}, denom={denom}");
+            numer / denom
+        })
+        .collect::<Vec<_>>();
     rank_probs.normalise(1.0);
     rank_probs
 }
@@ -344,7 +383,7 @@ mod tests {
     use assert_float_eq::assert_float_relative_eq;
 
     use crate::capture::Capture;
-    use crate::comb::{is_unique_quadratic, Enumerator};
+    use crate::comb::{Enumerator, is_unique_quadratic};
     use crate::dilative::DilatedProbs;
     use crate::probs::SliceExt;
 
@@ -600,15 +639,7 @@ mod tests {
         );
         let summary = harville_summary_condensed(&probs, RANKS);
         println!("summary: {summary:?}");
-        assert_slice_f64_relative(
-            &[
-                1.0,
-                1.0,
-                1.0,
-            ],
-            &summary,
-            1e-9,
-        );
+        assert_slice_f64_relative(&[1.0, 1.0, 1.0], &summary, 1e-9);
     }
 
     #[test]
@@ -617,11 +648,7 @@ mod tests {
         let summary = harville_3(&WIN_PROBS);
         println!("summary: {summary:?}");
         assert_slice_f64_relative(
-            &[
-                0.07619047619047627,
-                0.216666666666667,
-                0.7071428571428587,
-            ],
+            &[0.07619047619047627, 0.216666666666667, 0.7071428571428587],
             &summary,
             1e-9,
         );
@@ -771,22 +798,13 @@ mod tests {
     // [0.4000000000000016, 0.30000000000000104, 0.2000000000000007, 0.10000000000000028]
     // [0.315873015873017, 0.3083333333333345, 0.24126984126984216, 0.13452380952380988]
     // [0.2063492063492071, 0.2619047619047629, 0.3174603174603188, 0.21428571428571486]
-    // [0.07777777777777792, 0.12976190476190508, 0.24126984126984197, 0.5511904761904786] 
+    // [0.07777777777777792, 0.12976190476190508, 0.24126984126984197, 0.5511904761904786]
 
     #[test]
     fn harville_est_1x4() {
         const WIN_PROBS: [f64; 4] = [0.4, 0.3, 0.2, 0.1];
         let rank_probs = harville_est(&WIN_PROBS, 0, 1.0);
-        assert_slice_f64_relative(
-            &[
-                0.4,
-                0.3,
-                0.2,
-                0.1,
-            ],
-            &rank_probs,
-            1e-9,
-        );
+        assert_slice_f64_relative(&[0.4, 0.3, 0.2, 0.1], &rank_probs, 1e-9);
     }
 
     #[test]

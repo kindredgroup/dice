@@ -18,6 +18,7 @@ impl<T> Matrix<T> {
         }
     }
 
+    #[inline]
     pub fn allocate(rows: usize, cols: usize) -> Self where T: Default {
         let (len, overflow) = rows.overflowing_mul(cols);
         assert!(
@@ -29,34 +30,41 @@ impl<T> Matrix<T> {
         Self { data, rows, cols }
     }
 
+    #[inline]
     pub fn fill(&mut self, value: T) where T: Clone {
         self.data.fill(value);
     }
 
+    #[inline]
     pub fn rows(&self) -> usize {
         self.rows
     }
 
+    #[inline]
     pub fn cols(&self) -> usize {
         self.cols
     }
 
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
 
+    #[inline]
     pub fn row_slice(&self, row: usize) -> &[T] {
         debug_assert!(self.validate_row_index(row));
         let row_start = row * self.cols;
         &self.data.as_slice()[row_start..(row_start + self.cols)]
     }
 
+    #[inline]
     pub fn row_slice_mut(&mut self, row: usize) -> &mut [T] {
         debug_assert!(self.validate_row_index(row));
         let row_start = row * self.cols;
         &mut self.data.as_mut_slice()[row_start..(row_start + self.cols)]
     }
 
+    #[inline]
     pub fn clone_row(&mut self, source_row: &[T]) where T: Copy {
         debug_assert_eq!(self.cols, source_row.len(), "length of source row ({}) does not match number of columns ({})", source_row.len(), self.cols);
         for row in 0..self.rows {
@@ -65,6 +73,7 @@ impl<T> Matrix<T> {
         }
     }
 
+    #[inline]
     pub fn col(&self, col: usize) -> ColCellIter<T> {
         debug_assert!(col < self.cols, "column out of bounds");
         ColCellIter {
@@ -74,6 +83,7 @@ impl<T> Matrix<T> {
         }
     }
 
+    #[inline]
     pub fn read_col(&self, col: usize, target: &mut [T]) where T: Copy {
         debug_assert_eq!(self.rows, target.len(), "length of target vector ({}) does not match number of rows ({})", target.len(), self.rows);
         for row in 0..self.rows {
@@ -85,18 +95,22 @@ impl<T> Matrix<T> {
         VerboseFormat { referent: self }
     }
 
+    #[inline]
     pub fn unpack(self) -> (Vec<T>, usize, usize) {
         (self.data, self.rows, self.cols)
     }
 
+    #[inline]
     pub fn flatten(&self) -> &[T] {
         &self.data
     }
 
+    #[inline]
     pub fn flatten_mut(&mut self) -> &mut [T] {
         &mut self.data
     }
 
+    #[inline]
     pub fn transpose(&self) -> Matrix<T> where T: Default + Copy {
         let mut target = Matrix::<T>::allocate(self.cols, self.rows);
         for row in 0..self.rows {
@@ -107,6 +121,7 @@ impl<T> Matrix<T> {
         target
     }
 
+    #[inline]
     fn validate_row_index(&self, row: usize) -> bool {
         assert!(
             row < self.rows,
@@ -117,6 +132,7 @@ impl<T> Matrix<T> {
         true
     }
 
+    #[inline]
     fn validate_col_index(&self, col: usize) -> bool {
         assert!(
             col < self.cols,
@@ -174,12 +190,14 @@ impl<T> IndexMut<(usize, usize)> for Matrix<T> {
 impl<T> Index<usize> for Matrix<T> {
     type Output = [T];
 
+    #[inline]
     fn index(&self, row: usize) -> &Self::Output {
         self.row_slice(row)
     }
 }
 
 impl<T> IndexMut<usize> for Matrix<T> {
+    #[inline]
     fn index_mut(&mut self, row: usize) -> &mut Self::Output {
         self.row_slice_mut(row)
     }
@@ -189,6 +207,7 @@ impl<'a, T> IntoIterator for &'a Matrix<T> {
     type Item = &'a [T];
     type IntoIter = RowIter<'a, T>;
 
+    #[inline]
     fn into_iter(self) -> Self::IntoIter {
         Self::IntoIter {
             matrix: self,
@@ -205,6 +224,7 @@ pub struct RowIter<'a, T> {
 impl<'a, T> Iterator for RowIter<'a, T> {
     type Item = &'a [T];
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         if self.row < self.matrix.rows {
             let next = Some(&self.matrix[self.row]);
@@ -224,6 +244,7 @@ pub struct ColCellIter<'a, T> {
 impl<'a, T> Iterator for ColCellIter<'a, T> {
     type Item = &'a T;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         if self.row == self.matrix.rows {
             None
