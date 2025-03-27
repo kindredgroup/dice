@@ -96,8 +96,8 @@ pub fn count_permutations(n: usize, r: usize) -> usize {
 pub fn pick_permutation(
     cardinality: usize,
     permutation_index: usize,
-    ordinals: &mut [usize],
     bitmap: &mut [bool],
+    ordinals: &mut [usize],
 ) {
     bitmap.fill(false);
     let mut residual = permutation_index;
@@ -260,7 +260,7 @@ mod tests {
         let mut bitmap = vec![false; n];
         for index in 0..permutations {
             let mut ordinals = vec![0; r];
-            pick_permutation(n, index, &mut ordinals, &mut bitmap);
+            pick_permutation(n, index, &mut bitmap, &mut ordinals);
             outputs.push(ordinals.to_vec());
             println!("ordinals: {ordinals:?}");
         }

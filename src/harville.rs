@@ -1,4 +1,4 @@
-use crate::comb::{count_states, is_unique_linear, pick_state};
+use crate::comb::{count_permutations, count_states, is_unique_linear, pick_permutation, pick_state};
 use crate::matrix::Matrix;
 use crate::probs::SliceExt;
 use std::cmp::max;
@@ -20,13 +20,13 @@ pub fn harville(probs: &Matrix<f64>, podium: &[usize]) -> f64 {
     combined_prob
 }
 
-pub fn harville_summary(probs: &Matrix<f64>, ranks: usize) -> Matrix<f64> {
+pub fn old_harville_summary(probs: &Matrix<f64>, ranks: usize) -> Matrix<f64> {
     let runners = probs.cols();
     let mut summary = Matrix::allocate(ranks, runners);
     let cardinalities = vec![runners; ranks];
     let mut podium = vec![0; ranks];
     let mut bitmap = vec![false; runners];
-    harville_summary_no_alloc(
+    old_harville_summary_no_alloc(
         probs,
         ranks,
         &cardinalities,
@@ -37,7 +37,7 @@ pub fn harville_summary(probs: &Matrix<f64>, ranks: usize) -> Matrix<f64> {
     summary
 }
 
-pub fn harville_summary_no_alloc(
+pub fn old_harville_summary_no_alloc(
     probs: &Matrix<f64>,
     ranks: usize,
     cardinalities: &[usize],
@@ -62,9 +62,9 @@ pub fn harville_summary_no_alloc(
         bitmap.len(),
         "number of columns in the probabilities matrix must equal to the bitmap length"
     );
-    let permutations = count_states(cardinalities);
-    for permutation in 0..permutations {
-        pick_state(cardinalities, permutation, podium);
+    let states = count_states(cardinalities);
+    for state_index in 0..states {
+        pick_state(cardinalities, state_index, podium);
         if !is_unique_linear(podium, bitmap) {
             continue;
         }
@@ -75,10 +75,59 @@ pub fn harville_summary_no_alloc(
     }
 }
 
+pub fn harville_summary(probs: &Matrix<f64>, ranks: usize) -> Matrix<f64> {
+    let runners = probs.cols();
+    let mut summary = Matrix::allocate(ranks, runners);
+    let mut podium = vec![0; ranks];
+    let mut bitmap = vec![false; runners];
+    harville_summary_no_alloc(
+        probs,
+        ranks,
+        &mut podium,
+        &mut bitmap,
+        &mut summary,
+    );
+    summary
+}
+
+pub fn harville_summary_no_alloc(
+    probs: &Matrix<f64>,
+    ranks: usize,
+    podium: &mut [usize],
+    bitmap: &mut [bool],
+    summary: &mut Matrix<f64>,
+) {
+    debug_assert_eq!(
+        probs.rows(),
+        ranks,
+        "number of rows in the probabilities matrix must equal to the number of ranks"
+    );
+    debug_assert_eq!(summary.rows(), probs.rows(), "number of rows in the probabilities matrix must equal to the number of rows in the summary matrix");
+    debug_assert_eq!(summary.cols(), probs.cols(), "number of columns in the probabilities matrix must equal to the number of columns in the summary matrix");
+    debug_assert_eq!(
+        probs.rows(),
+        podium.len(),
+        "number of rows in the probabilities matrix must equal to the podium length"
+    );
+    debug_assert_eq!(
+        probs.cols(),
+        bitmap.len(),
+        "number of columns in the probabilities matrix must equal to the bitmap length"
+    );
+    let runners = probs.cols();
+    let permutations = count_permutations(runners, ranks);
+    for permutation in 0..permutations {
+        pick_permutation(runners, permutation, bitmap, podium);
+        let prob = harville(probs, podium);
+        for (rank, &runner) in podium.iter().enumerate() {
+            summary[(rank, runner)] += prob;
+        }
+    }
+}
+
 pub fn inter_harville_summary(probs: &Matrix<f64>, ranks: usize, degree: usize) -> Matrix<f64> {
     let runners = probs.cols();
     let mut summary = Matrix::allocate(ranks, runners);
-    let cardinalities = vec![runners; ranks];
     let mut podium = vec![0; ranks];
     let mut bitmap = vec![false; runners];
     let mut rand = StdRand::default();
@@ -86,7 +135,6 @@ pub fn inter_harville_summary(probs: &Matrix<f64>, ranks: usize, degree: usize) 
         probs,
         ranks,
         degree,
-        &cardinalities,
         &mut podium,
         &mut bitmap,
         &mut rand,
@@ -99,7 +147,6 @@ pub fn inter_harville_summary_no_alloc(
     probs: &Matrix<f64>,
     ranks: usize,
     degree: usize,
-    cardinalities: &[usize],
     podium: &mut [usize],
     bitmap: &mut [bool],
     rand: &mut impl Rand,
@@ -122,35 +169,26 @@ pub fn inter_harville_summary_no_alloc(
         bitmap.len(),
         "number of columns in the probabilities matrix must equal to the bitmap length"
     );
-    let total_permutations = count_states(cardinalities);
-    let capped_permutations = probs.cols().pow(degree as u32);
-    let increment = max(1, total_permutations / capped_permutations as u64);
-    log::trace!("total_permutations: {total_permutations}, capped_permutations: {capped_permutations}, increment: {increment}");
-    
-    //let max_debias = min(increment, probs.cols() as u64);
-    //log::trace!("max_debias: {max_debias}");
+    let runners = probs.cols();
+    let total_permutations = count_permutations(runners, ranks);
+    let capped_permutations = runners.pow(degree as u32);
+    let increment = max(1, total_permutations / capped_permutations);
+
+    let mut permutation = 0;
     let mut evaluated = 0;
-    let mut skipped = 0;
-    // for debias in 0..max_debias {
-        let mut permutation = 0;
-        while permutation < total_permutations {
-            pick_state(cardinalities, permutation, podium);
-            let jump = if increment > 1 { rand.next_lim_u64(increment * 2) } else { 1 };
-            //println!("jump={jump}");
-            permutation += jump;
-            if !is_unique_linear(podium, bitmap) {
-                skipped += 1;
-                continue;
-            }
-            evaluated += 1;
-            let prob = harville(probs, podium);
-            for (rank, &runner) in podium.iter().enumerate() {
-                summary[(rank, runner)] += prob;
-            }
+    while permutation < total_permutations {
+        pick_permutation(runners, permutation, bitmap, podium);
+        let jump = if increment > 1 { rand.next_lim_usize(increment * 2) + 1} else { 1 };
+        // println!("jump={jump}");
+        evaluated += 1;
+        permutation += jump;
+        let prob = harville(probs, podium);
+        for (rank, &runner) in podium.iter().enumerate() {
+            summary[(rank, runner)] += prob;
         }
-    // }
-    log::trace!("evaluated: {evaluated}, skipped={skipped}");
-    
+    }
+    log::trace!("total_permutations: {total_permutations}, capped_permutations: {capped_permutations}, increment: {increment}, evaluated: {evaluated} ({:.3}%)", evaluated as f64 / total_permutations as f64 * 100.0);
+
     if increment > 1 {
         for row_idx in 0..summary.rows() {
             summary.row_slice_mut(row_idx).normalise(1.0);
@@ -158,17 +196,74 @@ pub fn inter_harville_summary_no_alloc(
     }
 }
 
+// pub fn inter_harville_summary_no_alloc(
+//     probs: &Matrix<f64>,
+//     ranks: usize,
+//     degree: usize,
+//     podium: &mut [usize],
+//     mut bitmap: &mut [bool],
+//     rand: &mut impl Rand,
+//     summary: &mut Matrix<f64>,
+// ) {
+//     debug_assert_eq!(
+//         probs.rows(),
+//         ranks,
+//         "number of rows in the probabilities matrix must equal to the number of ranks"
+//     );
+//     debug_assert_eq!(summary.rows(), probs.rows(), "number of rows in the probabilities matrix must equal to the number of rows in the summary matrix");
+//     debug_assert_eq!(summary.cols(), probs.cols(), "number of columns in the probabilities matrix must equal to the number of columns in the summary matrix");
+//     debug_assert_eq!(
+//         probs.rows(),
+//         podium.len(),
+//         "number of rows in the probabilities matrix must equal to the podium length"
+//     );
+//     debug_assert_eq!(
+//         probs.cols(),
+//         bitmap.len(),
+//         "number of columns in the probabilities matrix must equal to the bitmap length"
+//     );
+//     let runners = probs.cols();
+//     let total_permutations = count_permutations(runners, ranks);
+//     let capped_permutations = runners.pow(degree as u32 - 1);
+//     let increment = max(1, total_permutations / capped_permutations);
+//     log::trace!("total_permutations: {total_permutations}, capped_permutations: {capped_permutations}, increment: {increment}");
+// 
+//     let max_debias = std::cmp::min(increment, runners);
+//     log::trace!("max_debias: {max_debias}");
+//     let mut evaluated = 0;
+//     for debias in 0..max_debias {
+//         let mut permutation = debias;
+//         while permutation < total_permutations {
+//             pick_permutation(runners, permutation, &mut bitmap, podium);
+//             // let jump = if increment > 1 { rand.next_lim_usize(increment * 2) } else { 1 };
+//             // permutation += jump;
+//             // //println!("jump={jump}");
+//             permutation += increment;
+//             evaluated += 1;
+//             let prob = harville(probs, podium);
+//             for (rank, &runner) in podium.iter().enumerate() {
+//                 summary[(rank, runner)] += prob;
+//             }
+//         }
+//     }
+//     log::trace!("evaluated: {evaluated}");
+// 
+//     if increment > 1 {
+//         for row_idx in 0..summary.rows() {
+//             summary.row_slice_mut(row_idx).normalise(1.0);
+//         }
+//     }
+// }
+
 pub fn harville_summary_condensed(probs: &Matrix<f64>, ranks: usize) -> Vec<f64> {
     let runners = probs.cols();
     let mut summary = Vec::with_capacity(runners);
     summary.resize(runners, 0.0);
-    let cardinalities = vec![runners; ranks];
     let mut podium = vec![0; ranks];
     let mut bitmap = vec![false; runners];
     harville_summary_condensed_no_alloc(
         probs,
         ranks,
-        &cardinalities,
         &mut podium,
         &mut bitmap,
         summary.as_mut_slice(),
@@ -179,7 +274,6 @@ pub fn harville_summary_condensed(probs: &Matrix<f64>, ranks: usize) -> Vec<f64>
 pub fn harville_summary_condensed_no_alloc(
     probs: &Matrix<f64>,
     ranks: usize,
-    cardinalities: &[usize],
     podium: &mut [usize],
     bitmap: &mut [bool],
     summary: &mut [f64],
@@ -200,12 +294,10 @@ pub fn harville_summary_condensed_no_alloc(
         bitmap.len(),
         "number of columns in the probabilities matrix must equal to the bitmap length"
     );
-    let permutations = count_states(cardinalities);
+    let runners = probs.cols();
+    let permutations = count_permutations(runners, ranks);
     for permutation in 0..permutations {
-        pick_state(cardinalities, permutation, podium);
-        if !is_unique_linear(podium, bitmap) {
-            continue;
-        }
+        pick_permutation(runners, permutation, bitmap, podium);
         let prob = harville(probs, podium);
         for &runner in podium.iter() {
             summary[runner] += prob;
@@ -215,23 +307,6 @@ pub fn harville_summary_condensed_no_alloc(
 
 pub fn harville_3(probs: &[f64]) -> Vec<f64> {
     let mut place_probs = (0..probs.len()).map(|_| 0.0).collect::<Vec<_>>();
-    // for (i, place_prob) in place_probs.iter_mut().enumerate() {
-    //     let mut big_sum = 0.0;
-    //     for j in 0..probs.len() {
-    //         for k in 0..probs.len() {
-    //             big_sum += probs[j] * probs[k] * probs[i] / (1.0 - probs[j]) / (1.0 - probs[j] - probs[k]);
-    //         }
-    //     }
-    // 
-    //     let mut small_sum = 0.0;
-    //     for j in 0..probs.len() {
-    //         small_sum += probs[j].powi(2) * probs[i] / (1.0 - probs[j]) / (1.0 - 2.0 * probs[j]);
-    //     }
-    //     println!("i={i}, big_sum={big_sum}, small_sum={small_sum}");
-    // 
-    //     *place_prob = big_sum - small_sum;
-    // }
-
     for (i, place_prob) in place_probs.iter_mut().enumerate() {
         let mut big_sum = 0.0;
         for j in 0..probs.len() {

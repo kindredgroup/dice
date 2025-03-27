@@ -1,6 +1,6 @@
 use dice::capture::Capture;
 use dice::dilative::DilatedProbs;
-use dice::harville::{harville_summary, inter_harville_summary};
+use dice::harville::{inter_harville_summary, harville_summary};
 use dice::matrix::Matrix;
 use dice::probs::SliceExt;
 use stanza::renderer::markdown::Markdown;
@@ -11,16 +11,7 @@ use stanza::table::{Row, Table};
 fn main() {
     env_logger::init();
 
-    let win_probs = vec![
-        0.3133715135010454,
-        0.21974565615291924,
-        0.15925657096461188,
-        0.11003606943945052,
-        0.07718504101678533,
-        0.054988279068626925,
-        0.038739210464234584,
-        0.026677659392326553,
-    ];
+    let win_probs = vec![0.2784197303099966, 0.1954372168433092, 0.14613262725141385, 0.10771732864366414, 0.0797980517422571, 0.058430296967786594, 0.04374205825964218, 0.030709575930595815, 0.022217682914963545, 0.016423615257347497, 0.012087131057607623, 0.008884684821415677];
     let k = win_probs.len();
     
     {
@@ -111,7 +102,7 @@ pub fn harville(win_probs: &[f64], k: usize) -> Matrix<f64> {
 }
 
 pub fn inter(win_probs: &[f64], k: usize) -> Matrix<f64> {
-    const DEGREE: usize = 8;
+    const DEGREE: usize = 6;
     let dilated_probs = Matrix::from(
         DilatedProbs::default()
             .with_win_probs(Capture::Borrowed(win_probs))

@@ -4,7 +4,7 @@ pub mod overbroke_sim;
 use std::ops::Div;
 use crate::capture::Capture;
 use crate::dilative::DilatedProbs;
-use crate::harville::{harville_est, harville_summary, harville_summary_condensed};
+use crate::harville::{harville_est, old_harville_summary, harville_summary_condensed};
 use crate::market::{Market, Overround, OverroundMethod, PriceBounds};
 use crate::matrix::Matrix;
 use crate::opt::{univariate_descent, UnivariateDescentConfig};
@@ -65,7 +65,7 @@ pub fn win_to_est_place_probs(win_probs: &[f64], k: u8) -> Vec<f64> {
 }
 
 pub fn win_to_opt_place_probs(win_probs: &[f64], k: u8, fit_rank_idx: u8) -> Vec<f64> {
-    let harville = harville_summary(&Matrix::from(
+    let harville = old_harville_summary(&Matrix::from(
         DilatedProbs::default()
             .with_win_probs(Capture::Borrowed(win_probs))
             .with_podium_places(fit_rank_idx as usize + 1),
