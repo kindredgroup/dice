@@ -13,6 +13,11 @@ run_overbroke_sim *ARGS:
 run_rank_matrix *ARGS:
      RUST_LOG=trace RUST_BACKTRACE=1 cargo run --release --bin run_rank_matrix -- {{ARGS}}
 
+# run Criterion bechmarks
+bench:
+    bash -c 'type cargo-criterion >/dev/null 2>&1 || cargo install cargo-criterion'
+    cargo criterion
+    
 # run the tests
 test:
     cargo test -- --include-ignored
