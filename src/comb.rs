@@ -1,8 +1,8 @@
 //! Combinatorics.
 
-#[inline(always)]
-pub fn pick(cardinalities: &[usize], permutation: u64, ordinals: &mut [usize]) {
-    let mut residual = permutation;
+#[inline]
+pub fn pick_state(cardinalities: &[usize], state_index: u64, ordinals: &mut [usize]) {
+    let mut residual = state_index;
     for (index, &cardinality) in cardinalities.iter().enumerate() {
         let cardinality = cardinality as u64;
         let (quotient, remainder) = (residual / cardinality, residual % cardinality);
@@ -12,52 +12,50 @@ pub fn pick(cardinalities: &[usize], permutation: u64, ordinals: &mut [usize]) {
 }
 
 #[inline]
-pub fn count_permutations(cardinalities: &[usize]) -> u64 {
-    cardinalities.iter().fold(1u64, |acc, &num| acc * num as u64)
+pub fn count_states(cardinalities: &[usize]) -> u64 {
+    cardinalities
+        .iter()
+        .fold(1u64, |acc, &num| acc * num as u64)
 }
 
-pub struct Permuter<'a> {
+pub struct Enumerator<'a> {
     cardinalities: &'a [usize],
-    permutations: u64,
+    states: u64,
 }
-impl<'a> Permuter<'a> {
+impl<'a> Enumerator<'a> {
     pub fn new(cardinalities: &'a [usize]) -> Self {
-        let permutations = count_permutations(cardinalities);
+        let states = count_states(cardinalities);
         Self {
             cardinalities,
-            permutations,
+            states,
         }
     }
 }
 
-impl<'a> IntoIterator for Permuter<'a> {
+impl<'a> IntoIterator for Enumerator<'a> {
     type Item = Vec<usize>;
     type IntoIter = Iter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
         Self::IntoIter {
-            permuter: self,
-            permutation: 0,
+            enumerator: self,
+            index: 0,
         }
     }
 }
 
 pub struct Iter<'a> {
-    permuter: Permuter<'a>,
-    permutation: u64,
+    enumerator: Enumerator<'a>,
+    index: u64,
 }
 impl Iterator for Iter<'_> {
     type Item = Vec<usize>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.permutation != self.permuter.permutations {
-            let mut ordinals = vec![0; self.permuter.cardinalities.len()];
-            pick(
-                self.permuter.cardinalities,
-                self.permutation,
-                &mut ordinals,
-            );
-            self.permutation += 1;
+        if self.index != self.enumerator.states {
+            let mut ordinals = vec![0; self.enumerator.cardinalities.len()];
+            pick_state(self.enumerator.cardinalities, self.index, &mut ordinals);
+            self.index += 1;
             Some(ordinals)
         } else {
             None
@@ -89,19 +87,59 @@ pub fn is_unique_linear(elements: &[usize], bitmap: &mut [bool]) -> bool {
     true
 }
 
+#[inline]
+pub fn count_permutations(n: usize, r: usize) -> usize {
+    ((n - r + 1)..=n).product()
+}
+
+#[inline]
+pub fn pick_permutation(
+    cardinality: usize,
+    permutation_index: usize,
+    ordinals: &mut [usize],
+    bitmap: &mut [bool],
+) {
+    bitmap.fill(false);
+    let mut residual = permutation_index;
+    for index in 0..ordinals.len() {
+        let cardinality = cardinality - index;
+        let (quotient, remainder) = (residual / cardinality, residual % cardinality);
+        residual = quotient;
+        if index == 0 {
+            // optimisation for index 0, where we know that the bitmap is blank
+            ordinals[index] = remainder;
+            bitmap[remainder] = true;
+        } else {
+            let mut free = 0;
+            for b in 0..bitmap.len() {
+                if bitmap[b] {
+                    continue;
+                }
+                if free == remainder {
+                    ordinals[index] = b;
+                    bitmap[b] = true;
+                    break;
+                } else {
+                    free += 1;
+                }
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_pick() {
+    fn test_pick_state() {
         let cardinalities = &[2, 3, 4];
         let mut outputs = vec![];
-        let permutations = count_permutations(cardinalities);
-        assert_eq!(24, permutations);
-        for permutation in 0..permutations {
+        let states = count_states(cardinalities);
+        assert_eq!(24, states);
+        for index in 0..states {
             let mut ordinals = [0; 3];
-            pick(cardinalities, permutation, &mut ordinals);
+            pick_state(cardinalities, index, &mut ordinals);
             outputs.push(ordinals.to_vec());
             println!("ordinals: {ordinals:?}");
         }
@@ -139,8 +177,8 @@ mod tests {
 
     #[test]
     fn iterator() {
-        let permuter = Permuter::new(&[2, 3, 4]);
-        let outputs = permuter.into_iter().collect::<Vec<_>>();
+        let enumerator = Enumerator::new(&[2, 3, 4]);
+        let outputs = enumerator.into_iter().collect::<Vec<_>>();
         let expected_outputs = vec![
             [0, 0, 0],
             [1, 0, 0],
@@ -195,5 +233,116 @@ mod tests {
         assert!(is_unique_linear(&[2, 1, 0], &mut bitmap_3));
         assert!(!is_unique_linear(&[0, 0], &mut bitmap_2));
         assert!(!is_unique_linear(&[1, 0, 1], &mut bitmap_3));
+    }
+
+    #[test]
+    fn test_count_permutations() {
+        assert_eq!(1, count_permutations(0, 0));
+        assert_eq!(1, count_permutations(1, 0));
+        assert_eq!(1, count_permutations(1, 1));
+        assert_eq!(1, count_permutations(2, 0));
+        assert_eq!(2, count_permutations(2, 1));
+        assert_eq!(2, count_permutations(2, 2));
+        assert_eq!(1, count_permutations(3, 0));
+        assert_eq!(3, count_permutations(3, 1));
+        assert_eq!(6, count_permutations(3, 2));
+        assert_eq!(6, count_permutations(3, 3));
+        assert_eq!(1, count_permutations(4, 0));
+        assert_eq!(4, count_permutations(4, 1));
+        assert_eq!(12, count_permutations(4, 2));
+        assert_eq!(24, count_permutations(4, 3));
+        assert_eq!(24, count_permutations(4, 4));
+    }
+    
+    fn generate_permutations(n: usize, r: usize) -> Vec<Vec<usize>> {
+        let mut outputs = vec![];
+        let permutations = count_permutations(n, r);
+        let mut bitmap = vec![false; n];
+        for index in 0..permutations {
+            let mut ordinals = vec![0; r];
+            pick_permutation(n, index, &mut ordinals, &mut bitmap);
+            outputs.push(ordinals.to_vec());
+            println!("ordinals: {ordinals:?}");
+        }
+        outputs
+    }
+    
+    fn inner_array_to_vec<const N: usize>(input: Vec<[usize; N]>) -> Vec<Vec<usize>> {
+        input.iter()
+            .map(|array| array.to_vec())
+            .collect()
+    }
+
+    #[test]
+    fn test_pick_permutation_4p4() {
+        let outputs = generate_permutations(4, 4);
+        let expected_outputs = vec![
+            [0, 1, 2, 3],
+            [1, 0, 2, 3],
+            [2, 0, 1, 3],
+            [3, 0, 1, 2],
+            [0, 2, 1, 3],
+            [1, 2, 0, 3],
+            [2, 1, 0, 3],
+            [3, 1, 0, 2],
+            [0, 3, 1, 2],
+            [1, 3, 0, 2],
+            [2, 3, 0, 1],
+            [3, 2, 0, 1],
+            [0, 1, 3, 2],
+            [1, 0, 3, 2],
+            [2, 0, 3, 1],
+            [3, 0, 2, 1],
+            [0, 2, 3, 1],
+            [1, 2, 3, 0],
+            [2, 1, 3, 0],
+            [3, 1, 2, 0],
+            [0, 3, 2, 1],
+            [1, 3, 2, 0],
+            [2, 3, 1, 0],
+            [3, 2, 1, 0],
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+
+    #[test]
+    fn test_pick_permutation_4p2() {
+        let outputs = generate_permutations(4, 2);
+        let expected_outputs = vec![
+            [0, 1],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [0, 2],
+            [1, 2],
+            [2, 1],
+            [3, 1],
+            [0, 3],
+            [1, 3],
+            [2, 3],
+            [3, 2],
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+
+    #[test]
+    fn test_pick_permutation_4p1() {
+        let outputs = generate_permutations(4, 1);
+        let expected_outputs = vec![
+            [0],
+            [1],
+            [2],
+            [3],
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+
+    #[test]
+    fn test_pick_permutation_4p0() {
+        let outputs = generate_permutations(4, 0);
+        let expected_outputs = vec![
+            [],
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
 }

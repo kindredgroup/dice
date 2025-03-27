@@ -1,6 +1,6 @@
 use dice::capture::Capture;
 use dice::dilative::DilatedProbs;
-use dice::harville::harville_summary;
+use dice::harville::{harville_summary, inter_harville_summary};
 use dice::matrix::Matrix;
 use dice::probs::SliceExt;
 use stanza::renderer::markdown::Markdown;
@@ -35,13 +35,13 @@ fn main() {
                 Styles::default(),
                 win_probs
                     .iter()
-                    .map(|prob| format!("{prob:.4}").into())
+                    .map(|prob| format!("{prob:.6}").into())
                     .collect(),
             ));
         log::info!("Win probs:\n{}", Markdown::default().render(&table));
     }
 
-    let rank_probs = harville(&win_probs, k);
+    let rank_probs = inter(&win_probs, k);
     {
         let table = Table::default()
             .with_row(Row::new(
@@ -55,7 +55,7 @@ fn main() {
                     Styles::default(),
                     probs
                         .iter()
-                        .map(|prob| format!("{prob:.4}").into())
+                        .map(|prob| format!("{prob:.6}").into())
                         .collect(),
                 )
             }));
@@ -75,7 +75,7 @@ fn main() {
                 Styles::default(),
                 row_sums
                     .iter()
-                    .map(|row_sum| format!("{row_sum:.4}").into())
+                    .map(|row_sum| format!("{row_sum:.6}").into())
                     .collect(),
             ));
         log::info!("Row sums:\n{}", Markdown::default().render(&table));
@@ -94,18 +94,28 @@ fn main() {
                 Styles::default(),
                 col_sums
                     .iter()
-                    .map(|col_sum| format!("{col_sum:.4}").into())
+                    .map(|col_sum| format!("{col_sum:.6}").into())
                     .collect(),
             ));
         log::info!("Col sums:\n{}", Markdown::default().render(&table));
     }
 }
 
-fn harville(win_probs: &[f64], k: usize) -> Matrix<f64> {
+pub fn harville(win_probs: &[f64], k: usize) -> Matrix<f64> {
     let dilated_probs = Matrix::from(
         DilatedProbs::default()
             .with_win_probs(Capture::Borrowed(win_probs))
             .with_podium_places(k),
     );
     harville_summary(&dilated_probs, k)
+}
+
+pub fn inter(win_probs: &[f64], k: usize) -> Matrix<f64> {
+    const DEGREE: usize = 8;
+    let dilated_probs = Matrix::from(
+        DilatedProbs::default()
+            .with_win_probs(Capture::Borrowed(win_probs))
+            .with_podium_places(k),
+    );
+    inter_harville_summary(&dilated_probs, k, DEGREE)
 }

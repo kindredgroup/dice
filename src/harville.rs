@@ -1,6 +1,8 @@
-use crate::comb::{count_permutations, is_unique_linear, pick};
+use crate::comb::{count_states, is_unique_linear, pick_state};
 use crate::matrix::Matrix;
 use crate::probs::SliceExt;
+use std::cmp::max;
+use tinyrand::{Rand, StdRand};
 
 pub fn harville(probs: &Matrix<f64>, podium: &[usize]) -> f64 {
     let mut combined_prob = 1.;
@@ -60,15 +62,98 @@ pub fn harville_summary_no_alloc(
         bitmap.len(),
         "number of columns in the probabilities matrix must equal to the bitmap length"
     );
-    let permutations = count_permutations(cardinalities);
+    let permutations = count_states(cardinalities);
     for permutation in 0..permutations {
-        pick(cardinalities, permutation, podium);
+        pick_state(cardinalities, permutation, podium);
         if !is_unique_linear(podium, bitmap) {
             continue;
         }
         let prob = harville(probs, podium);
         for (rank, &runner) in podium.iter().enumerate() {
             summary[(rank, runner)] += prob;
+        }
+    }
+}
+
+pub fn inter_harville_summary(probs: &Matrix<f64>, ranks: usize, degree: usize) -> Matrix<f64> {
+    let runners = probs.cols();
+    let mut summary = Matrix::allocate(ranks, runners);
+    let cardinalities = vec![runners; ranks];
+    let mut podium = vec![0; ranks];
+    let mut bitmap = vec![false; runners];
+    let mut rand = StdRand::default();
+    inter_harville_summary_no_alloc(
+        probs,
+        ranks,
+        degree,
+        &cardinalities,
+        &mut podium,
+        &mut bitmap,
+        &mut rand,
+        &mut summary,
+    );
+    summary
+}
+
+pub fn inter_harville_summary_no_alloc(
+    probs: &Matrix<f64>,
+    ranks: usize,
+    degree: usize,
+    cardinalities: &[usize],
+    podium: &mut [usize],
+    bitmap: &mut [bool],
+    rand: &mut impl Rand,
+    summary: &mut Matrix<f64>,
+) {
+    debug_assert_eq!(
+        probs.rows(),
+        ranks,
+        "number of rows in the probabilities matrix must equal to the number of ranks"
+    );
+    debug_assert_eq!(summary.rows(), probs.rows(), "number of rows in the probabilities matrix must equal to the number of rows in the summary matrix");
+    debug_assert_eq!(summary.cols(), probs.cols(), "number of columns in the probabilities matrix must equal to the number of columns in the summary matrix");
+    debug_assert_eq!(
+        probs.rows(),
+        podium.len(),
+        "number of rows in the probabilities matrix must equal to the podium length"
+    );
+    debug_assert_eq!(
+        probs.cols(),
+        bitmap.len(),
+        "number of columns in the probabilities matrix must equal to the bitmap length"
+    );
+    let total_permutations = count_states(cardinalities);
+    let capped_permutations = probs.cols().pow(degree as u32);
+    let increment = max(1, total_permutations / capped_permutations as u64);
+    log::trace!("total_permutations: {total_permutations}, capped_permutations: {capped_permutations}, increment: {increment}");
+    
+    //let max_debias = min(increment, probs.cols() as u64);
+    //log::trace!("max_debias: {max_debias}");
+    let mut evaluated = 0;
+    let mut skipped = 0;
+    // for debias in 0..max_debias {
+        let mut permutation = 0;
+        while permutation < total_permutations {
+            pick_state(cardinalities, permutation, podium);
+            let jump = if increment > 1 { rand.next_lim_u64(increment * 2) } else { 1 };
+            //println!("jump={jump}");
+            permutation += jump;
+            if !is_unique_linear(podium, bitmap) {
+                skipped += 1;
+                continue;
+            }
+            evaluated += 1;
+            let prob = harville(probs, podium);
+            for (rank, &runner) in podium.iter().enumerate() {
+                summary[(rank, runner)] += prob;
+            }
+        }
+    // }
+    log::trace!("evaluated: {evaluated}, skipped={skipped}");
+    
+    if increment > 1 {
+        for row_idx in 0..summary.rows() {
+            summary.row_slice_mut(row_idx).normalise(1.0);
         }
     }
 }
@@ -115,9 +200,9 @@ pub fn harville_summary_condensed_no_alloc(
         bitmap.len(),
         "number of columns in the probabilities matrix must equal to the bitmap length"
     );
-    let permutations = count_permutations(cardinalities);
+    let permutations = count_states(cardinalities);
     for permutation in 0..permutations {
-        pick(cardinalities, permutation, podium);
+        pick_state(cardinalities, permutation, podium);
         if !is_unique_linear(podium, bitmap) {
             continue;
         }
@@ -180,11 +265,11 @@ pub fn harville_est(probs: &[f64], rank_idx: usize, lambda: f64) -> Vec<f64> {
 
 #[cfg(test)]
 mod tests {
-    use assert_float_eq::assert_float_relative_eq;
     use crate::testing::assert_slice_f64_relative;
+    use assert_float_eq::assert_float_relative_eq;
 
     use crate::capture::Capture;
-    use crate::comb::{is_unique_quadratic, Permuter};
+    use crate::comb::{is_unique_quadratic, Enumerator};
     use crate::dilative::DilatedProbs;
     use crate::probs::SliceExt;
 
@@ -206,7 +291,7 @@ mod tests {
                 .with_win_probs(Capture::Borrowed(&WIN_PROBS))
                 .with_podium_places(3),
         );
-        let permuter = Permuter::new(&[RUNNERS; RANKS]);
+        let permuter = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = permuter
             .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
@@ -234,7 +319,7 @@ mod tests {
                 .with_win_probs(Capture::Borrowed(&WIN_PROBS))
                 .with_podium_places(RANKS),
         );
-        let permuter = Permuter::new(&[RUNNERS; RANKS]);
+        let permuter = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = permuter
             .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
@@ -267,7 +352,7 @@ mod tests {
                 .with_win_probs(Capture::Borrowed(&WIN_PROBS))
                 .with_podium_places(RANKS),
         );
-        let permuter = Permuter::new(&[RUNNERS; RANKS]);
+        let permuter = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = permuter
             .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
@@ -296,7 +381,7 @@ mod tests {
                 .with_win_probs(Capture::Borrowed(&WIN_PROBS))
                 .with_podium_places(RANKS),
         );
-        let permuter = Permuter::new(&[RUNNERS; RANKS]);
+        let permuter = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = permuter
             .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
@@ -324,7 +409,7 @@ mod tests {
                 .with_win_probs(Capture::Borrowed(&WIN_PROBS))
                 .with_podium_places(RANKS),
         );
-        let permuter = Permuter::new(&[RUNNERS; RANKS]);
+        let permuter = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = permuter
             .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
@@ -353,7 +438,7 @@ mod tests {
                 .with_win_probs(Capture::Borrowed(&WIN_PROBS))
                 .with_dilatives(Capture::Borrowed(&DILATIVES)),
         );
-        let permuter = Permuter::new(&[RUNNERS; RANKS]);
+        let permuter = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = permuter
             .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
