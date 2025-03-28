@@ -12,6 +12,16 @@ pub fn pick_state(cardinalities: &[usize], state_index: u64, ordinals: &mut [usi
 }
 
 #[inline]
+pub fn pick_state_hyper(cardinality: usize, dimensions: usize, state_index: usize, ordinals: &mut [usize]) {
+    let mut residual = state_index;
+    for index in 0..dimensions {
+        let (quotient, remainder) = (residual / cardinality, residual % cardinality);
+        residual = quotient;
+        ordinals[index] = remainder;
+    }
+}
+
+#[inline]
 pub fn count_states(cardinalities: &[usize]) -> u64 {
     cardinalities
         .iter()
@@ -101,14 +111,18 @@ pub fn pick_permutation(
 ) {
     bitmap.fill(false);
     let mut residual = permutation_index;
+    // let mut lowest = ordinals.len();
     for index in 0..ordinals.len() {
         let cardinality = cardinality - index;
         let (quotient, remainder) = (residual / cardinality, residual % cardinality);
         residual = quotient;
+        // if remainder < lowest {
         if index == 0 {
-            // optimisation for index 0, where we know that the bitmap is blank
             ordinals[index] = remainder;
             bitmap[remainder] = true;
+            // if remainder < lowest {
+            //     lowest = remainder;
+            // }
         } else {
             let mut free = 0;
             for b in 0..bitmap.len() {
@@ -118,6 +132,9 @@ pub fn pick_permutation(
                 if free == remainder {
                     ordinals[index] = b;
                     bitmap[b] = true;
+                    // if b < lowest {
+                    //     lowest = b;
+                    // }
                     break;
                 } else {
                     free += 1;
@@ -253,7 +270,7 @@ mod tests {
         assert_eq!(24, count_permutations(4, 3));
         assert_eq!(24, count_permutations(4, 4));
     }
-    
+
     fn generate_permutations(n: usize, r: usize) -> Vec<Vec<usize>> {
         let mut outputs = vec![];
         let permutations = count_permutations(n, r);
@@ -266,7 +283,7 @@ mod tests {
         }
         outputs
     }
-    
+
     fn inner_array_to_vec<const N: usize>(input: Vec<[usize; N]>) -> Vec<Vec<usize>> {
         input.iter()
             .map(|array| array.to_vec())
