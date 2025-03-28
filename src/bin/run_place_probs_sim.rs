@@ -25,21 +25,21 @@ fn main() {
         // Scenario { field: 10, k: 7 },
         // Scenario { field: 10, k: 8 },
         // Scenario { field: 10, k: 9 },
-        // Scenario { field: 12, k: 2 },
-        // Scenario { field: 12, k: 3 },
-        // Scenario { field: 12, k: 4 },
-        // Scenario { field: 12, k: 5 },
-        // Scenario { field: 12, k: 6 },
-        // Scenario { field: 12, k: 7 },
-        // Scenario { field: 12, k: 8 },
+        Scenario { field: 12, k: 2 },
+        Scenario { field: 12, k: 3 },
+        Scenario { field: 12, k: 4 },
+        Scenario { field: 12, k: 5 },
+        Scenario { field: 12, k: 6 },
+        Scenario { field: 12, k: 7 },
+        Scenario { field: 12, k: 8 },
         // Scenario { field: 18, k: 3 },
         // Scenario { field: 18, k: 4 },
         // Scenario { field: 18, k: 5 },
         // Scenario { field: 18, k: 6 },
-        Scenario { field: 20, k: 3 },
-        Scenario { field: 20, k: 4 },
-        Scenario { field: 20, k: 5 },
-        Scenario { field: 20, k: 6},
+        // Scenario { field: 20, k: 3 },
+        // Scenario { field: 20, k: 4 },
+        // Scenario { field: 20, k: 5 },
+        // Scenario { field: 20, k: 6},
         // Scenario { field: 24, k: 3 },
         // Scenario { field: 24, k: 4 },
         // Scenario { field: 24, k: 5 },
@@ -51,22 +51,33 @@ fn main() {
     log::info!("Trials: {TRIALS}");
     let table = Table::default()
         .with_cols(
-            (0..4)
+            (0..9)
                 .map(|_| Col::new(Styles::default().with(HAlign::Right)))
                 .collect(),
         )
         .with_row(Row::new(Styles::default().with(Header(true)), vec![
             "Field".into(),
             "Places".into(),
-            "RMSE".into(),
-            "RMSRE".into(),
+            "RMSRE mean".into(),
+            "RMSE mean".into(),
+            "RMSE p(.50)".into(),
+            "RMSE p(.90)".into(),
+            "RMSE p(.95)".into(),
+            "RMSE p(.99)".into(),
+            "RMSE p(1.0)".into(),
         ]))
         .with_rows(results.iter().map(|(scenario, stats)| {
+            let quantile_errors = stats.quantiles(|errors| errors.rmse, &[0.5, 0.9, 0.95, 0.99, 1.0]);
             Row::new(Styles::default(), vec![
                 format!("{}", scenario.field).into(),
                 format!("{}", scenario.k).into(),
-                format!("{:.6}", stats.rmse).into(),
-                format!("{:.6}", stats.rmsre).into(),
+                format!("{:.6}", stats.mean.rmsre).into(),
+                format!("{:.6}", stats.mean.rmse).into(),
+                format!("{:.6}", quantile_errors[0]).into(),
+                format!("{:.6}", quantile_errors[1]).into(),
+                format!("{:.6}", quantile_errors[2]).into(),
+                format!("{:.6}", quantile_errors[3]).into(),
+                format!("{:.6}", quantile_errors[4]).into(),
             ])
         }));
     log::info!("Summary:\n{}", Markdown::default().render(&table));
@@ -82,13 +93,14 @@ fn simulate_all(scenarios: Vec<Scenario>) -> Vec<(Scenario, Stats)> {
                 TRIALS,
                 &mut rand,
                 &dice::each_way::win_to_harville_place_probs,
+                // &dice::each_way::win_to_baor_redist_place_probs,
                 // &dice::each_way::win_to_est_place_probs,
-                &|win_probs, k| {
-                    dice::each_way::win_to_upscaled_place_probs(win_probs, k, std::cmp::min(k - 2, 2))
-                }
                 // &|win_probs, k| {
-                //     dice::each_way::win_to_poly_harville_place_probs(win_probs, k, 4)
+                //     dice::each_way::win_to_upscaled_place_probs(win_probs, k, std::cmp::min(k - 2, 2))
                 // }
+                &|win_probs, k| {
+                    dice::each_way::win_to_poly_harville_place_probs(win_probs, k, 4)
+                }
             );
             (scenario, stats)
         })

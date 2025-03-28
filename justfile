@@ -1,14 +1,14 @@
 _help:
     @just --list
 
-run_ew_probs_sim *ARGS:
-     RUST_LOG=debug RUST_BACKTRACE=1 cargo run --release --bin run_ew_probs_sim -- {{ARGS}}
-
 run_gen_probs *ARGS:
      RUST_LOG=debug RUST_BACKTRACE=1 cargo run --release --bin run_gen_probs -- {{ARGS}}
 
 run_overbroke_sim *ARGS:
      RUST_LOG=debug RUST_BACKTRACE=1 cargo run --release --bin run_overbroke_sim -- {{ARGS}}
+
+run_place_probs_sim *ARGS:
+     RUST_LOG=debug RUST_BACKTRACE=1 cargo run --release --bin run_place_probs_sim -- {{ARGS}}
 
 run_rank_matrix *ARGS:
      RUST_LOG=trace RUST_BACKTRACE=1 cargo run --release --bin run_rank_matrix -- {{ARGS}}

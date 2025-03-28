@@ -241,6 +241,10 @@ pub fn poly_harville_summary_no_alloc(
     );
 
     if step > 1 {
+        // // assign the win probs from the source
+        // for (index, prob) in summary.row_slice_mut(0).iter_mut().enumerate() {
+        //     *prob = probs[(0, index)]
+        // }
         for row_idx in 0..summary.rows() {
             summary.row_slice_mut(row_idx).normalise(1.0);
         }

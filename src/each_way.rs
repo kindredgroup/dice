@@ -22,13 +22,14 @@ pub fn win_to_place_odds(win_odds: &[f64], d: usize) -> Vec<f64> {
 }
 
 /// Produces place probability estimates for `k` placings using the Booksum-Adjusted Odds-Ratio method.
-pub fn win_to_baor_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
+pub fn win_to_baor_redist_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
     let k = k as f64;
     let mut place_probs = win_probs
         .iter()
         .map(|win_prob| 1.0 / (((1.0 / win_prob) - 1.0) / k + 1.0))
         .collect::<Vec<_>>();
     place_probs.normalise(k);
+    place_probs.redistribute();
     place_probs
 }
 

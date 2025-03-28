@@ -1,5 +1,5 @@
 use std::time::Instant;
-use crate::each_way::{win_to_baor_place_probs, win_to_harville_place_probs, win_to_upscaled_place_probs, win_to_place_odds};
+use crate::each_way::{win_to_baor_redist_place_probs, win_to_harville_place_probs, win_to_upscaled_place_probs, win_to_place_odds};
 use crate::probs::SliceExt;
 use tinyrand::Rand;
 use crate::random;
@@ -18,7 +18,7 @@ impl Estimator {
     fn win_to_place_probs(&self, win_probs: &[f64], k: usize) -> Vec<f64> {
         match self {
             Estimator::Harville => win_to_harville_place_probs(win_probs, k),
-            Estimator::BAOR => win_to_baor_place_probs(win_probs, k),
+            Estimator::BAOR => win_to_baor_redist_place_probs(win_probs, k),
             Estimator::Upscaling(max_fit_rank) => win_to_upscaled_place_probs(win_probs, k, std::cmp::min(k - 2, *max_fit_rank)),
         }
     }
