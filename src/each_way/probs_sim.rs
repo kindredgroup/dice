@@ -1,3 +1,4 @@
+use std::time::Instant;
 use crate::probs::SliceExt;
 use tinyrand::Rand;
 use crate::random;
@@ -12,7 +13,7 @@ pub struct Scenario {
     pub field: usize,
 
     /// Number of places payable.
-    pub k: u8,
+    pub k: usize,
 }
 
 /// Summary of the overall simulation.
@@ -27,12 +28,13 @@ pub fn simulate(
     scenario: &Scenario,
     trials: usize,
     rand: &mut impl Rand,
-    benchmark: &impl Fn(&[f64], u8) -> Vec<f64>,
-    contender: &impl Fn(&[f64], u8) -> Vec<f64>,
+    benchmark: &impl Fn(&[f64], usize) -> Vec<f64>,
+    contender: &impl Fn(&[f64], usize) -> Vec<f64>,
 ) -> Stats {
     let mut sum_sq_err = 0.0;
     let mut sum_sq_rel_err = 0.0;
-    for _ in 0..trials {
+    let start_time = Instant::now();
+    for trial in 0..trials {
         let win_probs = generate_random_probs(scenario.field, rand);
         log::trace!("win_probs={win_probs:?}");
 
@@ -41,6 +43,11 @@ pub fn simulate(
 
         let contender_place_probs = contender(&win_probs, scenario.k);
         log::trace!("contender_place_probs={contender_place_probs:?}");
+        
+        if trial == 0 {
+            let took = Instant::now() - start_time;
+            log::debug!("one iteration of {scenario:?} took {:.3}s, estimated time remaining: {:.0}s", took.as_secs_f64(), took.as_secs_f64() * (trials - 1) as f64);
+        }
 
         let mut local_sum_sq_err = 0.0;
         let mut local_sum_sq_rel_err = 0.0;

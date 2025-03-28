@@ -1,4 +1,5 @@
-use crate::each_way::{win_to_baor_place_probs, win_to_harville_place_probs, win_to_opt_place_probs, win_to_place_odds};
+use std::time::Instant;
+use crate::each_way::{win_to_baor_place_probs, win_to_harville_place_probs, win_to_upscaled_place_probs, win_to_place_odds};
 use crate::probs::SliceExt;
 use tinyrand::Rand;
 use crate::random;
@@ -10,15 +11,15 @@ const BETA: f64 = 0.25;
 pub enum Estimator {
     Harville,
     BAOR,
-    Upscaling(u8)
+    Upscaling(usize)
 }
 
 impl Estimator {
-    fn win_to_place_probs(&self, win_probs: &[f64], k: u8) -> Vec<f64> {
+    fn win_to_place_probs(&self, win_probs: &[f64], k: usize) -> Vec<f64> {
         match self {
             Estimator::Harville => win_to_harville_place_probs(win_probs, k),
             Estimator::BAOR => win_to_baor_place_probs(win_probs, k),
-            Estimator::Upscaling(max_fit_rank) => win_to_opt_place_probs(win_probs, k, std::cmp::min(k - 2, *max_fit_rank)),
+            Estimator::Upscaling(max_fit_rank) => win_to_upscaled_place_probs(win_probs, k, std::cmp::min(k - 2, *max_fit_rank)),
         }
     }
 }
@@ -43,10 +44,10 @@ pub struct Scenario {
     pub win_overround: f64,
 
     /// Number of places payable.
-    pub k: u8,
+    pub k: usize,
 
     /// Odds split factor.
-    pub d: u8,
+    pub d: usize,
 
     /// Target relative overround for the place book. The target booksum will be `k * target_place_overround`.
     pub target_place_overround: f64,
@@ -58,9 +59,15 @@ pub struct Scenario {
 /// Runs a complete simulation over a specified number of independent `trials` for the given `scenario`.
 pub fn simulate(scenario: &Scenario, trials: usize, rand: &mut impl Rand) -> Stats {
     let mut stats = Stats::default();
-    for _ in 0..trials {
+    let start_time = Instant::now();
+    for trial in 0..trials {
         let result = simulate_one(scenario, rand);
         log::trace!("result={result:?}");
+        if trial == 0 {
+            let took = Instant::now() - start_time;
+            log::debug!("one iteration of {scenario:?} took {:.3}s, estimated time remaining: {:.0}s", took.as_secs_f64(), took.as_secs_f64() * (trials - 1) as f64);
+        }
+        
         if result.overbroke {
             stats.total_overbroke += 1;
         }

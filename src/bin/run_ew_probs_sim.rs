@@ -1,7 +1,7 @@
 use dice::each_way::probs_sim::{Scenario, Stats};
-use dice::each_way::{probs_sim, win_to_harville_place_probs, win_to_opt_place_probs};
-use stanza::renderer::Renderer;
+use dice::each_way::probs_sim;
 use stanza::renderer::markdown::Markdown;
+use stanza::renderer::Renderer;
 use stanza::style::{HAlign, Header, Styles};
 use stanza::table::{Col, Row, Table};
 use tinyrand::StdRand;
@@ -13,15 +13,33 @@ fn main() {
 
     let results = simulate_all(vec![
         // Scenario { field: 8, k: 2 },
+        // Scenario { field: 8, k: 3 },
+        // Scenario { field: 8, k: 4 },
+        // Scenario { field: 8, k: 5 },
+        // Scenario { field: 8, k: 6 },
+        // Scenario { field: 8, k: 7 },
+        // Scenario { field: 10, k: 3 },
+        // Scenario { field: 10, k: 4 },
+        // Scenario { field: 10, k: 5 },
+        // Scenario { field: 10, k: 6 },
+        // Scenario { field: 10, k: 7 },
+        // Scenario { field: 10, k: 8 },
+        // Scenario { field: 10, k: 9 },
         // Scenario { field: 12, k: 2 },
         // Scenario { field: 12, k: 3 },
+        // Scenario { field: 12, k: 4 },
+        // Scenario { field: 12, k: 5 },
+        // Scenario { field: 12, k: 6 },
+        // Scenario { field: 12, k: 7 },
+        // Scenario { field: 12, k: 8 },
         // Scenario { field: 18, k: 3 },
         // Scenario { field: 18, k: 4 },
-        // Scenario { field: 20, k: 3 },
-        // Scenario { field: 20, k: 4 },
-        // Scenario { field: 20, k: 5 },
+        // Scenario { field: 18, k: 5 },
+        // Scenario { field: 18, k: 6 },
+        Scenario { field: 20, k: 3 },
+        Scenario { field: 20, k: 4 },
+        Scenario { field: 20, k: 5 },
         Scenario { field: 20, k: 6},
-        Scenario { field: 20, k: 7},
         // Scenario { field: 24, k: 3 },
         // Scenario { field: 24, k: 4 },
         // Scenario { field: 24, k: 5 },
@@ -63,10 +81,14 @@ fn simulate_all(scenarios: Vec<Scenario>) -> Vec<(Scenario, Stats)> {
                 &scenario,
                 TRIALS,
                 &mut rand,
-                &win_to_harville_place_probs,
+                &dice::each_way::win_to_harville_place_probs,
+                // &dice::each_way::win_to_est_place_probs,
                 &|win_probs, k| {
-                    win_to_opt_place_probs(win_probs, k, std::cmp::min(k - 2, 2))
+                    dice::each_way::win_to_upscaled_place_probs(win_probs, k, std::cmp::min(k - 2, 2))
                 }
+                // &|win_probs, k| {
+                //     dice::each_way::win_to_poly_harville_place_probs(win_probs, k, 4)
+                // }
             );
             (scenario, stats)
         })
