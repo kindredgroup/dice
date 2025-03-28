@@ -232,7 +232,7 @@ impl SliceExt for [f64] {
             let mut sum = orig_sum / max;
             let mut capped_count = 1;
             loop {
-                if sum >= orig_sum {
+                if sum >= orig_sum || capped_count == self.len() {
                     break;
                 }
                 let scale = (orig_sum - capped_count as f64) / (sum - capped_count as f64);
@@ -408,5 +408,13 @@ mod tests {
         data.redistribute();
         println!("data={data:?}");
         assert_slice_f64_relative(&[1.0, 1.0, 0.9189189189189191, 0.5945945945945946, 0.4864864864864865], &data, 1e-9);
+    }
+    
+    #[test]
+    fn redistribute_all_caps() {
+        let mut data = [1.2706440060157531, 1.1021136420450872, 1.2632031482652073, 1.2052018371866131, 1.0635666775694972, 0.9003750771632325, 0.8717737136650149, 0.32312189808959524];
+        data.redistribute();
+        println!("data={data:?}");
+        assert_slice_f64_relative(&[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], &data, 1e-9);
     }
 }
