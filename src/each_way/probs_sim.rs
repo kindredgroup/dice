@@ -37,7 +37,7 @@ impl Stats {
 
     fn sorted(&self, field: impl Fn(&Errors) -> f64) -> Vec<Errors> {
         let mut copy = self.samples.clone();
-        copy.sort_by(|lhs, rhs| field(lhs).total_cmp(&field(rhs)));
+        copy.sort_unstable_by(|a, b| field(a).total_cmp(&field(b)));
         copy
     }
 }
