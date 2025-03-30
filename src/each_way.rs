@@ -3,9 +3,7 @@ pub mod probs_sim;
 
 use crate::capture::Capture;
 use crate::dilative::DilatedProbs;
-use crate::harville::{
-    harville_est, harville_summary, harville_summary_condensed, poly_harville_summary,
-};
+use crate::harville::{harville_est, harville_summary, harville_summary_condensed, poly_harville_summary, stacked_harville_summary};
 use crate::market::{Market, Overround, OverroundMethod, PriceBounds};
 use crate::matrix::Matrix;
 use crate::opt::{UnivariateDescentConfig, univariate_descent};
@@ -136,4 +134,22 @@ pub fn win_to_poly_harville_place_probs(win_probs: &[f64], k: usize, degree: usi
                 .sum()
         })
         .collect()
+}
+
+pub fn win_to_stacked_harville_place_probs(win_probs: &[f64], k: usize, degree: usize) -> Vec<f64> {
+    let win_probs = Matrix::from(
+        DilatedProbs::default()
+            .with_win_probs(Capture::Borrowed(win_probs))
+            .with_podium_places(k),
+    );
+    let rank_probs = stacked_harville_summary(&win_probs, k, degree);
+    let mut place_probs = (0..rank_probs.cols())
+        .map(|col| {
+            (0..rank_probs.rows())
+                .map(|row| rank_probs[(row, col)])
+                .sum()
+        })
+        .collect::<Vec<_>>();
+    place_probs.redistribute();
+    place_probs
 }

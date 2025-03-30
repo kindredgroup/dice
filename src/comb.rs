@@ -556,6 +556,20 @@ mod tests {
     }
 
     #[test]
+    fn test_pick_permutation_3p3() {
+        let outputs = generate_permutations(3, 3);
+        let expected_outputs = vec![
+            [0, 1, 2],
+            [1, 0, 2],
+            [2, 0, 1],
+            [0, 2, 1],
+            [1, 2, 0],
+            [2, 1, 0],
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+
+    #[test]
     fn test_pick_permutation_4p4() {
         let outputs = generate_permutations(4, 4);
         let expected_outputs = vec![
