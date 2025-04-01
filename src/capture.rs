@@ -11,6 +11,7 @@ pub enum Capture<'a, W: Borrow<B>, B: ?Sized = W> {
 }
 
 impl<W: Borrow<B> + Default, B: ?Sized> Default for Capture<'_, W, B> {
+    #[inline]
     fn default() -> Self {
         Self::Owned(W::default())
     }
@@ -19,6 +20,7 @@ impl<W: Borrow<B> + Default, B: ?Sized> Default for Capture<'_, W, B> {
 impl<W: Borrow<B>, B: ?Sized> Deref for Capture<'_, W, B> {
     type Target = B;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         match self {
             Capture::Owned(owned) => owned.borrow(),
@@ -28,12 +30,14 @@ impl<W: Borrow<B>, B: ?Sized> Deref for Capture<'_, W, B> {
 }
 
 impl<W: Borrow<B>, B: ?Sized> From<W> for Capture<'_, W, B> {
+    #[inline]
     fn from(value: W) -> Self {
         Self::Owned(value)
     }
 }
 
 impl<B: ?Sized + ToOwned> Clone for Capture<'_, B::Owned, B> {
+    #[inline]
     fn clone(&self) -> Self {
         match self {
             Capture::Owned(owned) => Self::Owned(owned.borrow().to_owned()),
@@ -49,6 +53,7 @@ pub enum CaptureMut<'a, W: BorrowMut<B>, B: ?Sized = W> {
 }
 
 impl<W: BorrowMut<B> + Default, B: ?Sized> Default for CaptureMut<'_, W, B> {
+    #[inline]
     fn default() -> Self {
         Self::Owned(W::default())
     }
@@ -57,6 +62,7 @@ impl<W: BorrowMut<B> + Default, B: ?Sized> Default for CaptureMut<'_, W, B> {
 impl<W: BorrowMut<B>, B: ?Sized> Deref for CaptureMut<'_, W, B> {
     type Target = B;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         match self {
             CaptureMut::Owned(owned) => owned.borrow(),
@@ -66,6 +72,7 @@ impl<W: BorrowMut<B>, B: ?Sized> Deref for CaptureMut<'_, W, B> {
 }
 
 impl<W: BorrowMut<B>, B: ?Sized> DerefMut for CaptureMut<'_, W, B> {
+    #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         match self {
             CaptureMut::Owned(owned) => owned.borrow_mut(),
@@ -75,6 +82,7 @@ impl<W: BorrowMut<B>, B: ?Sized> DerefMut for CaptureMut<'_, W, B> {
 }
 
 impl<W: BorrowMut<B>, B: ?Sized> From<W> for CaptureMut<'_, W, B> {
+    #[inline]
     fn from(value: W) -> Self {
         Self::Owned(value)
     }

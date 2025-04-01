@@ -1,20 +1,26 @@
+use crate::capture::CaptureMut;
+
 #[derive(Debug)]
-pub struct Combiner {
-    ordinals: Vec<usize>,
+pub struct Combiner<'a> {
+    ordinals: CaptureMut<'a, Vec<usize>, [usize]>,
     n: usize,
 }
 
-impl Combiner {
+impl<'a> Combiner<'a> {
     #[inline]
     pub fn new(n: usize, r: usize) -> Self {
-        let ordinals = (0..r).collect::<Vec<_>>();
+        Self::new_no_alloc(n, vec![0; r].into())
+    }
+    
+    #[inline]
+    pub fn new_no_alloc(n: usize, mut ordinals: CaptureMut<'a, Vec<usize>, [usize]>) -> Self {
+        for ordinal in 0..ordinals.len() {
+            ordinals[ordinal] = ordinal;
+        }
         Self {
             ordinals, n
         }
     }
-    
-    // #[inline]
-    // pub fn new_no_alloc(n: usize, )
 
     #[inline]
     pub fn ordinals(&self) -> &[usize] {
