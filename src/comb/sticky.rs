@@ -1,23 +1,25 @@
 use crate::comb::bitmap::Bitmap;
 use crate::comb::combiner::Combiner;
 
-pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize])) {
+pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
     let mut combiner = Combiner::new(n, r);
     loop {
-        println!("combination: {:?}", combiner.ordinals());
+        //println!("combination: {:?}", combiner.ordinals());
         let elements = Bitmap::from((combiner.ordinals().iter().map(|ordinal| *ordinal), n));
         let stack = vec![];
-        _permute(&elements, &stack, &mut f, 0);
+        if !_permute(&elements, &stack, &mut f, 0) {
+            break;
+        }
         if !combiner.step() {
             break;
         }
     }
 }
 
-fn _permute(elements: &Bitmap, stack: &[usize], f: &mut impl FnMut(&[usize]), depth: usize) {
+fn _permute(elements: &Bitmap, stack: &[usize], f: &mut impl FnMut(&[usize]) -> bool, depth: usize) -> bool {
     if !elements.is_empty() {
         for Split(head, tail) in Splitter::new(&elements) {
-            println!("{}permuting split {head}-{tail}, stack: {stack:?}", "  ".repeat(depth));
+            //println!("{}permuting split {head}-{tail}, stack: {stack:?}", "  ".repeat(depth));
             // let mut permutation = Vec::with_capacity(head.size() + 1 + stack.len());
             // for ordinal in head.ordinals() {
             //     permutation.push(ordinal);
@@ -32,8 +34,11 @@ fn _permute(elements: &Bitmap, stack: &[usize], f: &mut impl FnMut(&[usize]), de
             for ordinal in stack {
                 new_stack.push(*ordinal);
             }
-            _permute(&head, &new_stack, f, depth + 1)
+            if !_permute(&head, &new_stack, f, depth + 1) {
+                return false;
+            }
         }
+        true
     } else {
         f(stack)
     }
@@ -92,6 +97,7 @@ mod tests {
         permute(n, r, |ordinals| {
             let ordinals = ordinals.iter().map(|ordinal| *ordinal).collect::<Vec<_>>();
             outputs.push(ordinals);
+            true
         });
         outputs
     }
@@ -212,6 +218,28 @@ mod tests {
             [3, 1, 2, 0],
             [2, 3, 1, 0],
             [3, 2, 1, 0]
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+
+    #[test]
+    fn permute_4p2_subset() {
+        const CAP: usize = 6;
+        let mut outputs = vec![];
+        let mut permutation = 0;
+        permute(4, 2, |ordinals| {
+            let ordinals = ordinals.iter().map(|ordinal| *ordinal).collect::<Vec<_>>();
+            outputs.push(ordinals);
+            permutation += 1;
+            permutation < CAP
+        });
+        let expected_outputs = vec![
+            [0, 1],
+            [1, 0],
+            [0, 2],
+            [2, 0],
+            [0, 3],
+            [3, 0],
         ];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
