@@ -1,5 +1,9 @@
 //! Combinatorics.
 
+pub mod bitmap;
+pub mod combiner;
+pub mod sticky;
+
 #[inline]
 pub fn pick_state(cardinalities: &[usize], state_index: u64, ordinals: &mut [usize]) {
     let mut residual = state_index;
@@ -551,7 +555,7 @@ mod tests {
         outputs
     }
 
-    fn inner_array_to_vec<const N: usize>(input: Vec<[usize; N]>) -> Vec<Vec<usize>> {
+    pub(crate) fn inner_array_to_vec<const N: usize>(input: Vec<[usize; N]>) -> Vec<Vec<usize>> {
         input.iter().map(|array| array.to_vec()).collect()
     }
 
