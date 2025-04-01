@@ -1,6 +1,6 @@
 use dice::capture::Capture;
 use dice::dilative::DilatedProbs;
-use dice::harville::{poly_harville_summary, harville_summary, stacked_harville_summary};
+use dice::harville::{poly_harville_summary, harville_summary, stacked_harville_summary, superstacked_harville_summary};
 use dice::matrix::Matrix;
 use dice::probs::SliceExt;
 use stanza::renderer::markdown::Markdown;
@@ -33,7 +33,7 @@ fn main() {
         log::info!("Win probs:\n{}", Markdown::default().render(&table));
     }
 
-    let rank_probs = stacked_harville(&win_probs, k);
+    let rank_probs = superstacked_harville(&win_probs, k);
     {
         let table = Table::default()
             .with_row(Row::new(
@@ -120,4 +120,14 @@ pub fn stacked_harville(win_probs: &[f64], k: usize) -> Matrix<f64> {
             .with_podium_places(k),
     );
     stacked_harville_summary(&dilated_probs, k, DEGREE)
+}
+
+pub fn superstacked_harville(win_probs: &[f64], k: usize) -> Matrix<f64> {
+    const DEGREE: usize = 3;
+    let dilated_probs = Matrix::from(
+        DilatedProbs::default()
+            .with_win_probs(Capture::Borrowed(win_probs))
+            .with_podium_places(k),
+    );
+    superstacked_harville_summary(&dilated_probs, k, DEGREE)
 }

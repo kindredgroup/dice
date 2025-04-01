@@ -1,6 +1,6 @@
 use crate::probs::SliceExt;
 use crate::random;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 use tinyrand::Rand;
 
 /// Scale parameter for the exponential probability allocator.
@@ -21,6 +21,8 @@ pub struct Scenario {
 pub struct Stats {
     pub samples: Vec<Errors>,
     pub mean: Errors,
+    pub benchmark_duration: Duration, 
+    pub contender_duration: Duration
 }
 
 impl Stats {
@@ -61,14 +63,20 @@ pub fn simulate(
     let mut sum_sq_err = 0.0;
     let mut sum_sq_rel_err = 0.0;
     let start_time = Instant::now();
+    let mut benchmark_duration = Duration::default();
+    let mut contender_duration = Duration::default();
     for trial in 0..trials {
         let win_probs = generate_random_probs(scenario.field, rand);
         log::trace!("win_probs={win_probs:?}");
 
+        let benchmark_start_time = Instant::now();
         let benchmark_place_probs = benchmark(&win_probs, scenario.k);
+        benchmark_duration += Instant::now() - benchmark_start_time;
         log::trace!("benchmark_place_probs={benchmark_place_probs:?}");
 
+        let contender_start_time = Instant::now();
         let contender_place_probs = contender(&win_probs, scenario.k);
+        contender_duration += Instant::now() - contender_start_time;
         log::trace!("contender_place_probs={contender_place_probs:?}");
 
         if trial == 0 {
@@ -105,11 +113,11 @@ pub fn simulate(
             log::warn!("contender_place_probs={contender_place_probs:?}");
         }
     }
-    let summary = Errors {
+    let mean = Errors {
         rmse: (sum_sq_err / trials as f64 / scenario.field as f64).sqrt(),
         rmsre: (sum_sq_rel_err / trials as f64 / scenario.field as f64).sqrt(),
     };
-    Stats { samples, mean: summary }
+    Stats { samples, mean, benchmark_duration, contender_duration }
 }
 
 fn generate_random_probs(field: usize, rand: &mut impl Rand) -> Vec<f64> {
