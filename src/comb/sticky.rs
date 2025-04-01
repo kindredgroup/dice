@@ -1,5 +1,6 @@
 use crate::comb::bitmap::Bitmap;
 use crate::comb::combiner::Combiner;
+use crate::comb::itemiser::Itemiser;
 
 pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
     let mut combiner = Combiner::new(n, r);

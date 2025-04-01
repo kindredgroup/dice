@@ -2,41 +2,28 @@ use crate::comb::{count_states, pick_state};
 
 pub struct Enumerator<'a> {
     cardinalities: &'a [usize],
-    states: u64,
+    index: usize,
+    states: usize,
 }
 impl<'a> Enumerator<'a> {
+    #[inline]
     pub fn new(cardinalities: &'a [usize]) -> Self {
         let states = count_states(cardinalities);
         Self {
             cardinalities,
+            index: 0,
             states,
         }
     }
 }
 
-impl<'a> IntoIterator for Enumerator<'a> {
-    type Item = Vec<usize>;
-    type IntoIter = Iter<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        Self::IntoIter {
-            enumerator: self,
-            index: 0,
-        }
-    }
-}
-
-pub struct Iter<'a> {
-    enumerator: Enumerator<'a>,
-    index: u64,
-}
-impl Iterator for Iter<'_> {
+impl Iterator for Enumerator<'_> {
     type Item = Vec<usize>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.index != self.enumerator.states {
-            let mut ordinals = vec![0; self.enumerator.cardinalities.len()];
-            pick_state(self.enumerator.cardinalities, self.index, &mut ordinals);
+        if self.index != self.states {
+            let mut ordinals = vec![0; self.cardinalities.len()];
+            pick_state(self.cardinalities, self.index, &mut ordinals);
             self.index += 1;
             Some(ordinals)
         } else {
@@ -51,9 +38,38 @@ mod tests {
     use crate::comb::tests::inner_array_to_vec;
 
     #[test]
-    fn iterator() {
+    fn iterator_0() {
+        let enumerator = Enumerator::new(&[]);
+        let outputs = enumerator.collect::<Vec<_>>();
+        let expected_outputs = vec![
+            [],
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+
+    #[test]
+    fn iterator_1() {
+        let enumerator = Enumerator::new(&[1]);
+        let outputs = enumerator.collect::<Vec<_>>();
+        let expected_outputs = vec![
+            [0]
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+    
+    #[test]
+    fn iterator_1_empty() {
+        let enumerator = Enumerator::new(&[0]);
+        let outputs = enumerator.collect::<Vec<_>>();
+        let expected_outputs: Vec<[usize; 0]> = vec![
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+    
+    #[test]
+    fn iterator_3() {
         let enumerator = Enumerator::new(&[2, 3, 4]);
-        let outputs = enumerator.into_iter().collect::<Vec<_>>();
+        let outputs = enumerator.collect::<Vec<_>>();
         let expected_outputs = vec![
             [0, 0, 0],
             [1, 0, 0],

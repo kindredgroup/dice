@@ -3,17 +3,18 @@
 pub mod bitmap;
 pub mod combiner;
 pub mod enumerator;
+pub mod itemiser;
 pub mod permuter;
 pub mod sticky;
 
 #[inline]
-pub fn pick_state(cardinalities: &[usize], state_index: u64, ordinals: &mut [usize]) {
+pub fn pick_state(cardinalities: &[usize], state_index: usize, ordinals: &mut [usize]) {
     let mut residual = state_index;
     for (index, &cardinality) in cardinalities.iter().enumerate() {
-        let cardinality = cardinality as u64;
+        let cardinality = cardinality;
         let (quotient, remainder) = (residual / cardinality, residual % cardinality);
         residual = quotient;
-        ordinals[index] = remainder as usize;
+        ordinals[index] = remainder;
     }
 }
 
@@ -33,10 +34,10 @@ pub fn pick_state_hyper(
 }
 
 #[inline]
-pub fn count_states(cardinalities: &[usize]) -> u64 {
+pub fn count_states(cardinalities: &[usize]) -> usize {
     cardinalities
         .iter()
-        .fold(1u64, |acc, &num| acc * num as u64)
+        .fold(1, |acc, &num| acc * num)
 }
 
 #[inline(always)]

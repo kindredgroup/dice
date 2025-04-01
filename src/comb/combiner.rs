@@ -1,4 +1,5 @@
 use crate::capture::CaptureMut;
+use crate::comb::itemiser::Itemiser;
 
 #[derive(Debug)]
 pub struct Combiner<'a> {
@@ -11,28 +12,30 @@ impl<'a> Combiner<'a> {
     pub fn new(n: usize, r: usize) -> Self {
         Self::new_no_alloc(n, vec![0; r].into())
     }
-    
+
     #[inline]
     pub fn new_no_alloc(n: usize, mut ordinals: CaptureMut<'a, Vec<usize>, [usize]>) -> Self {
         for ordinal in 0..ordinals.len() {
             ordinals[ordinal] = ordinal;
         }
         Self {
-            ordinals, n
+            ordinals, n,
         }
     }
+}
 
+impl Itemiser for Combiner<'_> {
     #[inline]
-    pub fn ordinals(&self) -> &[usize] {
+    fn ordinals(&self) -> &[usize] {
         &self.ordinals
     }
 
     #[inline]
-    pub fn step(&mut self) -> bool {
+    fn step(&mut self) -> bool {
         if self.ordinals.is_empty() {
             return false;
         }
-        
+
         let mut caret = self.ordinals.len() - 1;
         loop {
             let lim = if caret == self.ordinals.len() - 1 { self.n - 1 } else { self.ordinals[caret + 1] - 1 };
@@ -46,7 +49,7 @@ impl<'a> Combiner<'a> {
                 return false;
             }
         }
-        
+
         self.ordinals[caret] += 1;
         for i in caret + 1..self.ordinals.len() {
             self.ordinals[i] = self.ordinals[i - 1] + 1;
@@ -59,6 +62,7 @@ impl<'a> Combiner<'a> {
 #[cfg(test)]
 mod tests {
     use crate::comb::combiner::Combiner;
+    use crate::comb::itemiser::Itemiser;
     use crate::comb::tests::inner_array_to_vec;
 
     fn iterate_combiner(n: usize, r: usize) -> Vec<Vec<usize>> {
@@ -116,7 +120,7 @@ mod tests {
         ];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
-    
+
     #[test]
     fn combiner_2c2() {
         let outputs = iterate_combiner(2, 2);

@@ -215,12 +215,12 @@ impl SliceExt for [f64] {
 
     #[inline]
     fn min(&self) -> f64 {
-        self.iter().map(|item| *item).reduce(|a, b| a.min(b)).unwrap()
+        self.iter().copied().reduce(|a, b| a.min(b)).unwrap()
     }
 
     #[inline]
     fn max(&self) -> f64 {
-        self.iter().map(|item| *item).reduce(|a, b| a.max(b)).unwrap()
+        self.iter().copied().reduce(|a, b| a.max(b)).unwrap()
     }
 
     #[inline]

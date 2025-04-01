@@ -32,7 +32,7 @@ impl Bitmap {
     
     #[inline]
     pub fn ordinals(&self) -> Iter {
-        Iter::new(&self)
+        Iter::new(self)
     }
     
     #[inline]
@@ -72,7 +72,7 @@ impl<'a> Iter<'a> {
     }
 }
 
-impl<'a> Iterator for Iter<'a> {
+impl Iterator for Iter<'_> {
     type Item = usize;
 
     #[inline]
