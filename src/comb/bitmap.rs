@@ -31,8 +31,18 @@ impl Bitmap {
     }
     
     #[inline]
-    pub fn ordinals(&self) -> Vec<usize> {
-        self.0.iter().enumerate().filter(|(_, flag)| **flag).map(|(ordinal, _)| ordinal).collect()
+    pub fn ordinals(&self) -> Iter {
+        Iter::new(&self)
+    }
+    
+    #[inline]
+    pub fn next_occupied(&self, start: usize) -> Option<usize> {
+        for i in start..self.0.len() {
+            if self.0[i] {
+                return Some(i);
+            }
+        }
+        None
     }
 }
 
@@ -47,16 +57,35 @@ impl<I: IntoIterator<Item = usize>> From<(I, usize)> for Bitmap {
     }
 }
 
-// impl<'a, I: Iterator<Item = &'a usize>> From<(I, usize)> for Bitmap {
-//     #[inline]
-//     fn from(ordinals_and_len: (I, usize)) -> Self {
-//         let mut bitmap = Self::empty(ordinals_and_len.1);
-//         for ordinal in ordinals_and_len.0 {
-//             bitmap[*ordinal] = true;
-//         }
-//         bitmap
-//     }
-// }
+pub struct Iter<'a> {
+    bitmap: &'a Bitmap,
+    index: Option<usize>
+}
+
+impl<'a> Iter<'a> {
+    #[inline]
+    pub fn new(bitmap: &'a Bitmap) -> Self {
+        Self {
+            bitmap,
+            index: bitmap.next_occupied(0),
+        }
+    }
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = usize;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.index {
+            None => None,
+            Some(index) => {
+                self.index = self.bitmap.next_occupied(index + 1);
+                Some(index)
+            }
+        }
+    }
+}
 
 impl From<Vec<bool>> for Bitmap {
     #[inline]
@@ -91,13 +120,13 @@ impl Deref for Bitmap {
 
 impl Debug for Bitmap {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Bitmap{:?}", self.ordinals())
+        write!(f, "Bitmap{:?}", self.ordinals().collect::<Vec<_>>())
     }
 }
 
 impl Display for Bitmap {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.ordinals())
+        write!(f, "{:?}", self.ordinals().collect::<Vec<_>>())
     }
 }
 
@@ -144,5 +173,21 @@ mod tests {
     fn from_ordinals() {
         let bitmap = Bitmap::from(([1, 3], 4));
         assert_eq!(Bitmap::from(vec![false, true, false, true]), bitmap);
+    }
+    
+    #[test]
+    fn ordinals_empty() {
+        let bitmap = Bitmap::empty(3);
+        let mut it = bitmap.ordinals();
+        assert_eq!(None, it.next());
+    }
+
+    #[test]
+    fn ordinals_non_empty() {
+        let bitmap = Bitmap::from(([1, 3], 4));
+        let mut it = bitmap.ordinals();
+        assert_eq!(Some(1), it.next());
+        assert_eq!(Some(3), it.next());
+        assert_eq!(None, it.next());
     }
 }

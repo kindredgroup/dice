@@ -94,6 +94,33 @@ mod tests {
     }
 
     #[test]
+    fn permuter_0p0() {
+        let outputs = iterate_permuter(0, 0);
+        let expected_outputs = vec![
+            []
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+
+    #[test]
+    fn permuter_1p0() {
+        let outputs = iterate_permuter(1, 0);
+        let expected_outputs = vec![
+            []
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+
+    #[test]
+    fn permuter_1p1() {
+        let outputs = iterate_permuter(1, 1);
+        let expected_outputs = vec![
+            [0]
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+
+    #[test]
     fn permuter_4p0() {
         let outputs = iterate_permuter(4, 0);
         let expected_outputs = vec![

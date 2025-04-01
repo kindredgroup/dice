@@ -81,10 +81,28 @@ mod tests {
     }
 
     #[test]
-    fn combiner_2c0() {
-        let outputs = iterate_combiner(2, 0);
+    fn combiner_0c0() {
+        let outputs = iterate_combiner(0, 0);
         let expected_outputs = vec![
             []
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+
+    #[test]
+    fn combiner_1c0() {
+        let outputs = iterate_combiner(1, 0);
+        let expected_outputs = vec![
+            []
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+
+    #[test]
+    fn combiner_1c1() {
+        let outputs = iterate_combiner(1, 1);
+        let expected_outputs = vec![
+            [0]
         ];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
