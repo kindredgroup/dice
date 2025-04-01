@@ -1,9 +1,9 @@
+use crate::comb::permuter::Permuter;
 use crate::comb::{count_permutations, is_unique_linear, pick_permutation, pick_state_hyper};
 use crate::matrix::Matrix;
 use crate::probs::SliceExt;
 use std::cmp::max;
 use tinyrand::{Rand, StdRand};
-use crate::comb::permuter::Permuter;
 
 #[inline]
 pub fn harville(probs: &Matrix<f64>, podium: &[usize]) -> f64 {
@@ -619,7 +619,8 @@ mod tests {
     use assert_float_eq::assert_float_relative_eq;
 
     use crate::capture::Capture;
-    use crate::comb::{Enumerator, is_unique_quadratic};
+    use crate::comb::enumerator::Enumerator;
+    use crate::comb::is_unique_quadratic;
     use crate::dilative::DilatedProbs;
     use crate::probs::SliceExt;
 
