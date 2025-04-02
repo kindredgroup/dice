@@ -1,5 +1,5 @@
 use crate::capture::CaptureMut;
-use crate::comb::itemiser::Itemiser;
+use crate::comb::occupied::Occupied;
 
 #[derive(Debug)]
 pub struct Combiner<'a> {
@@ -24,7 +24,7 @@ impl<'a> Combiner<'a> {
     }
 }
 
-impl Itemiser for Combiner<'_> {
+impl Occupied for Combiner<'_> {
     #[inline]
     fn ordinals(&self) -> &[usize] {
         &self.ordinals
@@ -62,7 +62,7 @@ impl Itemiser for Combiner<'_> {
 #[cfg(test)]
 mod tests {
     use crate::comb::combiner::Combiner;
-    use crate::comb::itemiser::Itemiser;
+    use crate::comb::occupied::Occupied;
     use crate::comb::tests::inner_array_to_vec;
 
     fn iterate_combiner(n: usize, r: usize) -> Vec<Vec<usize>> {

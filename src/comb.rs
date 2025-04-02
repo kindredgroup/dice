@@ -4,6 +4,7 @@ pub mod bitmap;
 pub mod combiner;
 pub mod enumerator;
 pub mod itemiser;
+pub mod occupied;
 pub mod permuter;
 pub mod sticky;
 

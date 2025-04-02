@@ -610,7 +610,8 @@ pub fn harville_est(probs: &[f64], rank_idx: usize, lambda: f64) -> Vec<f64> {
 
 #[cfg(test)]
 mod tests {
-    use crate::testing::assert_slice_f64_relative;
+    use crate::comb::itemiser::Itemiser;
+use crate::testing::assert_slice_f64_relative;
     use assert_float_eq::assert_float_relative_eq;
 
     use crate::capture::Capture;
@@ -637,8 +638,8 @@ mod tests {
                 .with_win_probs(Capture::Borrowed(&WIN_PROBS))
                 .with_podium_places(3),
         );
-        let permuter = Enumerator::new(&[RUNNERS; RANKS]);
-        let probs = permuter
+        let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
+        let probs = enumerator
             .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
@@ -665,8 +666,8 @@ mod tests {
                 .with_win_probs(Capture::Borrowed(&WIN_PROBS))
                 .with_podium_places(RANKS),
         );
-        let permuter = Enumerator::new(&[RUNNERS; RANKS]);
-        let probs = permuter
+        let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
+        let probs = enumerator
             .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
@@ -698,8 +699,8 @@ mod tests {
                 .with_win_probs(Capture::Borrowed(&WIN_PROBS))
                 .with_podium_places(RANKS),
         );
-        let permuter = Enumerator::new(&[RUNNERS; RANKS]);
-        let probs = permuter
+        let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
+        let probs = enumerator
             .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
@@ -727,8 +728,8 @@ mod tests {
                 .with_win_probs(Capture::Borrowed(&WIN_PROBS))
                 .with_podium_places(RANKS),
         );
-        let permuter = Enumerator::new(&[RUNNERS; RANKS]);
-        let probs = permuter
+        let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
+        let probs = enumerator
             .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
@@ -755,8 +756,8 @@ mod tests {
                 .with_win_probs(Capture::Borrowed(&WIN_PROBS))
                 .with_podium_places(RANKS),
         );
-        let permuter = Enumerator::new(&[RUNNERS; RANKS]);
-        let probs = permuter
+        let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
+        let probs = enumerator
             .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
@@ -784,8 +785,8 @@ mod tests {
                 .with_win_probs(Capture::Borrowed(&WIN_PROBS))
                 .with_dilatives(Capture::Borrowed(&DILATIVES)),
         );
-        let permuter = Enumerator::new(&[RUNNERS; RANKS]);
-        let probs = permuter
+        let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
+        let probs = enumerator
             .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {

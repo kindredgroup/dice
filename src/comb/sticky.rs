@@ -1,6 +1,6 @@
 use crate::comb::bitmap::Bitmap;
 use crate::comb::combiner::Combiner;
-use crate::comb::itemiser::Itemiser;
+use crate::comb::occupied::Occupied;
 
 pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
     let mut combiner = Combiner::new(n, r);
@@ -29,7 +29,7 @@ fn _permute(elements: &Bitmap, stack: &[usize], f: &mut impl FnMut(&[usize]) -> 
             // for &ordinal in stack {
             //     permutation.push(ordinal);
             // }
-            
+
             let mut new_stack = Vec::with_capacity(stack.len() + 1);
             new_stack.push(tail);
             for ordinal in stack {
@@ -138,22 +138,22 @@ mod tests {
         ];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
-    
+
     #[test]
     fn permute_4p2() {
         let outputs = iterate_sticky(4, 2);
         let expected_outputs = vec![
-            [0, 1], 
-            [1, 0], 
-            [0, 2], 
-            [2, 0], 
-            [0, 3], 
-            [3, 0], 
-            [1, 2], 
-            [2, 1], 
-            [1, 3], 
-            [3, 1], 
-            [2, 3], 
+            [0, 1],
+            [1, 0],
+            [0, 2],
+            [2, 0],
+            [0, 3],
+            [3, 0],
+            [1, 2],
+            [2, 1],
+            [1, 3],
+            [3, 1],
+            [2, 3],
             [3, 2]
         ];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
@@ -163,29 +163,29 @@ mod tests {
     fn permute_4p3() {
         let outputs = iterate_sticky(4, 3);
         let expected_outputs = vec![
-            [0, 1, 2], 
-            [1, 0, 2], 
-            [0, 2, 1], 
-            [2, 0, 1], 
-            [1, 2, 0], 
-            [2, 1, 0], 
-            [0, 1, 3], 
-            [1, 0, 3], 
-            [0, 3, 1], 
-            [3, 0, 1], 
-            [1, 3, 0], 
-            [3, 1, 0], 
-            [0, 2, 3], 
-            [2, 0, 3], 
-            [0, 3, 2], 
-            [3, 0, 2], 
-            [2, 3, 0], 
-            [3, 2, 0], 
-            [1, 2, 3], 
-            [2, 1, 3], 
-            [1, 3, 2], 
-            [3, 1, 2], 
-            [2, 3, 1], 
+            [0, 1, 2],
+            [1, 0, 2],
+            [0, 2, 1],
+            [2, 0, 1],
+            [1, 2, 0],
+            [2, 1, 0],
+            [0, 1, 3],
+            [1, 0, 3],
+            [0, 3, 1],
+            [3, 0, 1],
+            [1, 3, 0],
+            [3, 1, 0],
+            [0, 2, 3],
+            [2, 0, 3],
+            [0, 3, 2],
+            [3, 0, 2],
+            [2, 3, 0],
+            [3, 2, 0],
+            [1, 2, 3],
+            [2, 1, 3],
+            [1, 3, 2],
+            [3, 1, 2],
+            [2, 3, 1],
             [3, 2, 1]
         ];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
