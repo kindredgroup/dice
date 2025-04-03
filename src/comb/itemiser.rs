@@ -78,9 +78,12 @@ pub trait Itemiser {
         None
     }
 
-    // fn filter<U, F>(self, f: F) -> {
-    //
-    // }
+    fn filter_<F>(self, mut predicate: F) -> Filter<Self, F> where F: FnMut(&Self::Item<'_>) -> bool, Self: Sized {
+        Filter {
+            itemiser: self,
+            predicate,
+        }
+    }
 }
 
 pub struct Map<S, F, V> {
@@ -134,7 +137,7 @@ mod tests2 {
     fn filter() {
         let slice = [0, 1, 2, 3, 4, 5, 6].as_slice();
         let it = SliceIt::from(slice);
-        let filter = it.filter(|item| *item % 2 == 0);
+        let filter = it.filter_(|item| *item % 2 == 0);
         assert_eq!(vec![0, 2, 4, 6], filter.collect_());
     }
 }
