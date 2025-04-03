@@ -29,6 +29,8 @@ impl<'a> Enumerator<'a> {
 }
 
 impl Itemiser for Enumerator<'_> {
+    type Item<'c> = &'c [usize] where Self: 'c;
+
     fn next(&mut self) -> Option<&[usize]> {
         if self.index != self.states {
             pick_state(self.cardinalities, self.index, &mut self.ordinals);
@@ -64,7 +66,7 @@ mod tests {
     #[test]
     fn iterator_0() {
         let enumerator = Enumerator::new(&[]);
-        let outputs = enumerator.into_iter().collect::<Vec<_>>();
+        let outputs = enumerator.ccc();
         let expected_outputs = vec![
             [],
         ];
@@ -74,7 +76,7 @@ mod tests {
     #[test]
     fn iterator_1() {
         let enumerator = Enumerator::new(&[1]);
-        let outputs = enumerator.into_iter().collect::<Vec<_>>();
+        let outputs = enumerator.ccc();
         let expected_outputs = vec![
             [0]
         ];
@@ -84,7 +86,7 @@ mod tests {
     #[test]
     fn iterator_1_empty() {
         let enumerator = Enumerator::new(&[0]);
-        let outputs = enumerator.into_iter().collect::<Vec<_>>();
+        let outputs = enumerator.ccc();
         let expected_outputs: Vec<[usize; 0]> = vec![
         ];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
@@ -93,7 +95,7 @@ mod tests {
     #[test]
     fn iterator_3() {
         let enumerator = Enumerator::new(&[2, 3, 4]);
-        let outputs = enumerator.into_iter().collect::<Vec<_>>();
+        let outputs = enumerator.ccc();
         let expected_outputs = vec![
             [0, 0, 0],
             [1, 0, 0],

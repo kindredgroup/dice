@@ -1,3 +1,4 @@
+use std::marker::PhantomData;
 use crate::comb::itemiser::Itemiser;
 
 pub trait Occupied {
@@ -53,20 +54,24 @@ pub trait Occupied {
 
 pub struct IntoItemiser<O: Occupied> {
     occupied: O,
-    initial: bool
+    initial: bool,
+    // __phantom_data: PhantomData<&'a ()>
 }
 
 impl<O: Occupied> From<O> for IntoItemiser<O> {
     fn from(occupied: O) -> Self {
         Self {
             occupied,
-            initial: true
+            initial: true,
+            // __phantom_data: Default::default(),
         }
     }
 }
 
-impl<I: Occupied> Itemiser for IntoItemiser<I> {
-    fn next(&mut self) -> Option<&[usize]> {
+impl<'a, I: Occupied> Itemiser for IntoItemiser<I> {
+    type Item<'c> = &'c [usize] where Self: 'c;
+
+    fn next<'c>(&'c mut self) -> Option<Self::Item<'c>> {
         let has_more = if self.initial {
             self.initial = false;
             true
