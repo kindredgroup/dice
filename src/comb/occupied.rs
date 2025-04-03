@@ -1,4 +1,3 @@
-use std::marker::PhantomData;
 use crate::comb::itemiser::Itemiser;
 
 pub trait Occupied {
