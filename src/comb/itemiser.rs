@@ -5,9 +5,11 @@ pub trait Itemiser {
 
     fn next<'c>(&'c mut self) -> Option<Self::Item<'c>>;
 
-    // fn into_iter<'c>(self) -> Iter<Self, Self::Item<'c>, <Self::Item<'c> as ToOwned>::Owned> where Self: Sized + 'static, for <'d> Self::Item<'d>: ToOwned {
-    //     Iter::from(self)
-    // }
+    fn into_iter_<I: ?Sized>(self) -> Iter<Self> where for <'any> Self: Itemiser<Item<'any> = &'any I>, I: ToOwned, Self: Sized + 'static {
+        Iter {
+            itemiser: self,
+        }
+    }
 
     // fn into_iter(self) -> Iter<Self, impl for <'c> Fn(Self::Item<'c>)> where Self: Sized {
     //     Iter::over(self, |item| {})
@@ -19,20 +21,8 @@ pub trait Itemiser {
     //     // })
     //     Iter::over(self, Self::constrain(Self::cl))
     // }
-    //
-    // fn constrain<S: Itemiser, F>(f: F) -> F where for <'c> F: Fn(&'c mut S) -> Option<<Self::Item<'c> as ToOwned>::Owned>, for<'c> <Self as Itemiser>::Item<'c>: ToOwned {
-    //     f
-    // }
-    //
-    // fn cl<'g>(itemiser: &'g mut Self) ->  Option<<Self::Item<'g> as ToOwned>::Owned> where Self: Sized + 'static, for <'d> Self::Item<'d> : ToOwned {
-    //     None
-    // }
-    //
-    // fn cl1<'g>(itemiser: &mut Self) ->  Option<<Self::Item<'g> as ToOwned>::Owned> where Self: Sized + 'static, for <'d> Self::Item<'d> : ToOwned {
-    //     None
-    // }
 
-    fn collect_<T>(self) -> Vec<T::Owned> where for <'any> Self: Itemiser<Item<'any> = &'any T>, T: ToOwned + ?Sized, Self: Sized + 'static {
+    fn collect_<I>(self) -> Vec<I::Owned> where for <'any> Self: Itemiser<Item<'any> = &'any I>, I: ToOwned + ?Sized, Self: Sized + 'static {
         let mut items = vec![];
         self.for_each(|item| {
             let owned = item.to_owned();
@@ -41,7 +31,7 @@ pub trait Itemiser {
         items
     }
 
-    fn map_<V, U, F>(self, f: F) -> Map<Self, F, V> where F: FnMut(&U) -> V, for <'any> Self: Itemiser<Item<'any> = &'any U>, Self: Sized  {
+    fn map_<V, U: ?Sized + 'static, F>(self, f: F) -> Map<Self, F, V> where F: FnMut(&U) -> V, for <'any> Self: Itemiser<Item<'any> = &'any U>, Self: Sized  {
         Map {
             itemiser: self,
             transform: f,
@@ -63,11 +53,12 @@ pub trait Itemiser {
         }
     }
 
-    fn find<'c, F>(&'c mut self, mut predicate: F) -> Option<Self::Item<'c>> where F: FnMut(&Self::Item<'_>) -> bool, Self: Sized {
+    // fn find<'c, F>(&'c mut self, mut predicate: F) -> Option<Self::Item<'c>> where F: FnMut(&Self::Item<'_>) -> bool, Self: Sized {
+    fn find<'c, I: ?Sized, F>(&'c mut self, predicate: &mut F) -> Option<Self::Item<'c>> where for <'any> Self: Itemiser<Item<'any> = &'any I> + 'static, F: FnMut(&I) -> bool, Self: Sized {
         while let Some(item) = self.next() {
             if predicate(&item) {
                 let ptr: *const Self::Item<'_> = &item;
-                mem::forget(item);
+                // mem::forget(item); // only needed if item is an owned value
                 // SAFETY: workaround for borrow checker limitation. Prevents `item` from holding a mutable
                 // borrow on `self` beyond returning.
                 let ptr = unsafe { mem::transmute::<_, *const Self::Item<'c>>(ptr) };
@@ -78,7 +69,8 @@ pub trait Itemiser {
         None
     }
 
-    fn filter_<F>(self, mut predicate: F) -> Filter<Self, F> where F: FnMut(&Self::Item<'_>) -> bool, Self: Sized {
+    // fn filter_<F>(self, mut predicate: F) -> Filter<Self, F> where F: FnMut(&Self::Item<'_>) -> bool, Self: Sized {
+    fn filter<I: ?Sized + 'static, F>(self, predicate: F) -> Filter<Self, F> where for <'any> Self: Itemiser<Item<'any> = &'any I> + 'static, F: FnMut(&I) -> bool, Self: Sized {
         Filter {
             itemiser: self,
             predicate,
@@ -92,7 +84,7 @@ pub struct Map<S, F, V> {
     next: Option<V>
 }
 
-impl<V, U, S, F> Itemiser for Map<S, F, V> where F: FnMut(&U) -> V, for <'any> S: Itemiser<Item<'any> = &'any U> + 'static {
+impl<V, U: ?Sized + 'static, S, F> Itemiser for Map<S, F, V> where F: FnMut(&U) -> V, for <'any> S: Itemiser<Item<'any> = &'any U> + 'static {
     type Item<'c> = &'c V where Self: 'c;
 
     fn next<'c>(&'c mut self) -> Option<Self::Item<'c>> {
@@ -106,158 +98,25 @@ pub struct Filter<S, F> {
     predicate: F
 }
 
-impl<I: 'static, S, F> Itemiser for Filter<S, F> where for <'any> S: Itemiser<Item<'any> = &'any I> + 'static, for <'any> F: FnMut(Self::Item<'any>) -> bool {
+impl<I: ?Sized + 'static, S, F> Itemiser for Filter<S, F> where for <'any> S: Itemiser<Item<'any> = &'any I> + 'static, F: FnMut(&I) -> bool + 'static {
     type Item<'c> = &'c I where Self: 'c;
 
     fn next<'c>(&'c mut self) -> Option<Self::Item<'c>> {
-        self.find(&mut self.predicate)
+        self.itemiser.find(&mut self.predicate)
     }
 }
 
-#[cfg(test)]
-mod tests2 {
-    use crate::comb::itemiser::{Itemiser, SliceIt};
-
-    #[test]
-    fn map_in_place() {
-        let it = SliceIt::from([0, 10, 20].as_slice());
-        let map = it.map_in_place(0, |item, buffer| *buffer = *item * 10);
-        assert_eq!(vec![0, 100, 200], map.collect_());
-    }
-
-    #[test]
-    fn map() {
-        let slice = [0, 10, 20].as_slice();
-        let it = SliceIt::from(slice);
-        let map = it.map_(|item| *item * 10);
-        assert_eq!(vec![0, 100, 200], map.collect_());
-    }
-
-    #[test]
-    fn filter() {
-        let slice = [0, 1, 2, 3, 4, 5, 6].as_slice();
-        let it = SliceIt::from(slice);
-        let filter = it.filter_(|item| *item % 2 == 0);
-        assert_eq!(vec![0, 2, 4, 6], filter.collect_());
-    }
+pub struct Iter<S> {
+    itemiser: S,
 }
 
-// fn dummy<S: Itemiser, W, F>(f: F) -> F where F: for<'c> Fn(&'c mut S) -> Option<W> {
-//     f
-// }
+impl<I: ?Sized + ToOwned + 'static, S> Iterator for Iter<S> where for <'any> S: Itemiser<Item<'any> = &'any I> + 'static {
+    type Item = I::Owned;
 
-// pub struct Iter<'c, I: Itemiser> {
-//     itemiser: I,
-//     __phantom_data: PhantomData<&'c ()>
-// }
-//
-// impl<'c, I: ToOwned, S: Itemiser<Item<'c> = I> + 'static> From<S> for Iter<'c, S> {
-//     fn from(itemiser: S) -> Self {
-//         Self {
-//             itemiser,
-//             __phantom_data: Default::default(),
-//         }
-//     }
-// }
-//
-// impl<'c, I: ToOwned, S: Itemiser<Item<'c> = I> + 'static> Iterator for Iter<'c, S> {
-//     type Item = I::Owned;
-//
-//     fn next(&mut self) -> Option<Self::Item> {
-//         self.itemiser.next().map(|item| item.to_owned())
-//     }
-// }
-
-// pub struct Iter<S: Itemiser, F> {
-//     itemiser: S,
-//     f: F
-// }
-//
-// impl<W, S: Itemiser, F> Iter<S, F> where F: for <'e> Fn(&'e mut S) -> Option<W> {
-//     pub fn over(itemiser: S, f: F) -> Self {
-//         Self {
-//             itemiser,
-//             f,
-//         }
-//     }
-// }
-//
-// impl<W, S: Itemiser, F> Iterator for Iter<S, F> where F: for <'c> Fn(&'c mut S) -> Option<W> {
-//     type Item = W;
-//
-//     fn next(&mut self) -> Option<Self::Item> {
-//         todo!()
-//     }
-// }
-
-// impl<I, S: for <'e> Itemiser<Item<'e> = I>, F> Iter<S, F> where F: Fn(I) {
-//     fn over(itemiser: S, f: F) -> Self {
-//         Self {
-//             itemiser,
-//             f,
-//         }
-//     }
-// }
-
-// impl<W, S: Itemiser + 'static> Iterator for Iter<S, W> where for <'c> S::Item<'c>: ToOwned {
-//     type Item = W;
-//
-//     fn next(&mut self) -> Option<Self::Item> {
-//
-//         // self.itemiser.next().map(|item| item.to_owned())
-//         todo!()
-//     }
-// }
-
-//---
-
-//
-// pub struct Iter<S: Itemiser, I, W> {
-//     itemiser: S,
-//     __phantom_data: PhantomData<(I, W)>
-// }
-//
-// impl<I: ToOwned, S: Itemiser + 'static> From<S> for Iter<S, I, I::Owned> where for <'e> S::Item<'e> : ToOwned {
-//     fn from(itemiser: S) -> Self {
-//         Self {
-//             itemiser,
-//             __phantom_data: Default::default(),
-//         }
-//     }
-// }
-//
-// impl<'c, I: ToOwned, S: Itemiser<Item<'c> = I> + 'static> Iterator for Iter<S, I, I::Owned> {
-// // impl<I: ToOwned, S: for <'c> Itemiser<Item<'c> = I> + 'static> Iterator for Iter<S, I, I::Owned> {
-//     type Item = I::Owned;
-//
-//     fn next<'a>(&'a mut self) -> Option<Self::Item> {
-//         let i: &'a mut S = &mut self.itemiser;
-//         let g: &'c Option<I> = &i.next();
-//         // let g = &mut i.next() as *mut Option<I>;
-//         // let next: Option<I> = unsafe { *g };
-//         // self.itemiser.next().map(|item| item.to_owned())
-//         todo!()
-//     }
-// }
-
-
-//---
-
-// impl<I: ToOwned, S: for <'e> Itemiser<Item<'e> = I> + 'static> From<S> for Iter<S> {
-//     fn from(itemiser: S) -> Self {
-//         Self {
-//             itemiser,
-//         }
-//     }
-// }
-
-// impl<I: ToOwned, S: for <'c> Itemiser<Item<'c> = I> + 'static> Iterator for Iter<S> {
-//     type Item = I::Owned;
-//
-//     fn next(&mut self) -> Option<Self::Item> {
-//         self.itemiser.next().map(|item| item.to_owned())
-//     }
-// }
+    fn next(&mut self) -> Option<Self::Item> {
+        self.itemiser.next().map(|item| item.to_owned())
+    }
+}
 
 pub struct SliceIt<'a, T> {
     slice: &'a [T],
@@ -313,8 +172,40 @@ mod tests {
 
     #[test]
     fn slice_it() {
-        let it = SliceIt::from([0, 10, 20].as_slice());
-        let collected = it.collect_();
+        let itemiser = SliceIt::from([0, 10, 20].as_slice());
+        let collected = itemiser.collect_();
+        assert_eq!(vec![0, 10, 20], collected);
+    }
+
+    #[test]
+    fn map_in_place() {
+        let itemiser = SliceIt::from([0, 10, 20].as_slice());
+        let map = itemiser.map_in_place(0, |item, buffer| *buffer = *item * 10);
+        assert_eq!(vec![0, 100, 200], map.collect_());
+    }
+
+    #[test]
+    fn map() {
+        let slice = [0, 10, 20].as_slice();
+        let itemiser = SliceIt::from(slice);
+        let map = itemiser.map_(|item| *item * 10);
+        assert_eq!(vec![0, 100, 200], map.collect_());
+    }
+
+    #[test]
+    fn filter() {
+        let slice = [0, 1, 2, 3, 4, 5, 6].as_slice();
+        let itemiser = SliceIt::from(slice);
+        let filter = itemiser.filter(|item| *item % 2 == 0);
+        assert_eq!(vec![0, 2, 4, 6], filter.collect_());
+    }
+    
+    #[test]
+    fn into_iter() {
+        let slice = [0, 10, 20].as_slice();
+        let itemiser = SliceIt::from(slice);
+        let it = itemiser.into_iter_();
+        let collected = it.collect::<Vec<_>>();
         assert_eq!(vec![0, 10, 20], collected);
     }
 }

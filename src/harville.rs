@@ -24,69 +24,6 @@ pub fn harville(probs: &Matrix<f64>, podium: &[usize]) -> f64 {
     combined_prob
 }
 
-// pub fn old_harville_summary(probs: &Matrix<f64>, ranks: usize) -> Matrix<f64> {
-//     let runners = probs.cols();
-//     let mut summary = Matrix::allocate(ranks, runners);
-//     let cardinalities = vec![runners; ranks];
-//     let mut podium = vec![0; ranks];
-//     let mut bitmap = vec![false; runners];
-//     old_harville_summary_no_alloc(
-//         probs,
-//         ranks,
-//         &cardinalities,
-//         &mut podium,
-//         &mut bitmap,
-//         &mut summary,
-//     );
-//     summary
-// }
-//
-// pub fn old_harville_summary_no_alloc(
-//     probs: &Matrix<f64>,
-//     ranks: usize,
-//     cardinalities: &[usize],
-//     podium: &mut [usize],
-//     bitmap: &mut [bool],
-//     summary: &mut Matrix<f64>,
-// ) {
-//     debug_assert_eq!(
-//         probs.rows(),
-//         ranks,
-//         "number of rows in the probabilities matrix must equal to the number of ranks"
-//     );
-//     debug_assert_eq!(
-//         summary.rows(),
-//         probs.rows(),
-//         "number of rows in the probabilities matrix must equal to the number of rows in the summary matrix"
-//     );
-//     debug_assert_eq!(
-//         summary.cols(),
-//         probs.cols(),
-//         "number of columns in the probabilities matrix must equal to the number of columns in the summary matrix"
-//     );
-//     debug_assert_eq!(
-//         probs.rows(),
-//         podium.len(),
-//         "number of rows in the probabilities matrix must equal to the podium length"
-//     );
-//     debug_assert_eq!(
-//         probs.cols(),
-//         bitmap.len(),
-//         "number of columns in the probabilities matrix must equal to the bitmap length"
-//     );
-//     let states = count_states(cardinalities);
-//     for state_index in 0..states {
-//         pick_state(cardinalities, state_index, podium);
-//         if !is_unique_linear(podium, bitmap) {
-//             continue;
-//         }
-//         let prob = harville(probs, podium);
-//         for (rank, &runner) in podium.iter().enumerate() {
-//             summary[(rank, runner)] += prob;
-//         }
-//     }
-// }
-
 pub fn harville_summary(probs: &Matrix<f64>, ranks: usize) -> Matrix<f64> {
     let runners = probs.cols();
     let mut summary = Matrix::allocate(ranks, runners);
@@ -458,27 +395,6 @@ pub fn superstacked_harville_summary_no_alloc(
                 permutation += 1;
                 permutation < quota
             });
-            // let mut permuter = Permuter::new_no_alloc(rank, bitmap, &mut sans_self_podium);
-            // let mut permutation = 0;
-            // loop {
-            //     for (index, ordinal) in &mut permuter.ordinals().iter().enumerate() {
-            //         podium[index] = *sans_self[*ordinal];
-            //     }
-            //     podium[rank] = runner;
-            //     let prob = harville(probs, podium);
-            //     log::trace!("  podium: {podium:?}, prob: {prob:.6}");
-            //     summary[(rank, runner)] += prob;
-            // 
-            //     if permutation == quota {
-            //         break;
-            //     }
-            // 
-            //     if !permuter.step() {
-            //         break;
-            //     }
-            // 
-            //     permutation +=1;
-            // }
         }
     }
 
@@ -622,7 +538,7 @@ use crate::testing::assert_slice_f64_relative;
 
     use super::*;
 
-    #[derive(Debug)]
+    #[derive(Debug, Clone)]
     struct PodiumProb {
         podium: Vec<usize>,
         prob: f64,
@@ -640,7 +556,7 @@ use crate::testing::assert_slice_f64_relative;
         );
         let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = enumerator
-            .into_iter()
+            .into_iter_()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
                 let prob = harville(&probs, &podium);
@@ -668,7 +584,7 @@ use crate::testing::assert_slice_f64_relative;
         );
         let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = enumerator
-            .into_iter()
+            .into_iter_()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
                 let prob = harville(&probs, &podium);
@@ -701,7 +617,7 @@ use crate::testing::assert_slice_f64_relative;
         );
         let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = enumerator
-            .into_iter()
+            .into_iter_()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
                 let prob = harville(&probs, &podium);
@@ -730,7 +646,7 @@ use crate::testing::assert_slice_f64_relative;
         );
         let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = enumerator
-            .into_iter()
+            .into_iter_()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
                 let prob = harville(&probs, &podium);
@@ -758,7 +674,7 @@ use crate::testing::assert_slice_f64_relative;
         );
         let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = enumerator
-            .into_iter()
+            .into_iter_()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
                 let prob = harville(&probs, &podium);
@@ -787,7 +703,7 @@ use crate::testing::assert_slice_f64_relative;
         );
         let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = enumerator
-            .into_iter()
+            .into_iter_()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
                 let prob = harville(&probs, &podium);
