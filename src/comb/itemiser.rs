@@ -3,7 +3,6 @@ pub trait Itemiser {
 
     fn next(&mut self) -> Option<&Self::Item>;
 
-    // fn into_iter_<I: ?Sized>(self) -> Iter<Self> where for <'any> Self: Itemiser<Item<'any> = &'any I>, I: ToOwned, Self: Sized {
     #[inline]
     fn into_iter_(self) -> Iter<Self> where Self::Item: ToOwned, Self: Sized {
         Iter {
@@ -11,14 +10,6 @@ pub trait Itemiser {
         }
     }
     
-    // fn collect_<I>(mut self) -> Vec<I::Owned> where Self: Itemiser<Item = I>, I: ToOwned + ?Sized, Self: Sized {
-    //     let mut items = vec![];
-    //     while let Some(item) = self.next() {
-    //         items.push(item.to_owned())
-    //     }
-    //     items
-    // }
-
     #[inline]
     fn collect_(mut self) -> Vec<<Self::Item as ToOwned>::Owned> where Self::Item: ToOwned, Self: Sized {
         let mut items = vec![];
@@ -28,10 +19,6 @@ pub trait Itemiser {
         items
     }
     
-    // 
-    // // unsafe fn expand_lifetime_mut<'short, 'long, T: ?Sized>(v: &'short mut T) -> &'long mut T { std::mem::transmute(v) }
-    // 
-    // fn map_<V, U: ?Sized, F>(self, f: F) -> Map<Self, F, V> where F: FnMut(&U) -> V, for <'any> Self: Itemiser<Item<'any> = &'any U>, Self: Sized  {
     #[inline]
     fn map_<V, F>(self, f: F) -> Map<Self, F, V> where F: FnMut(&Self::Item) -> V, Self: Sized {
         Map {
@@ -40,51 +27,55 @@ pub trait Itemiser {
             next: None
         }
     }
-    // 
-    // fn map_in_place<B, U, F>(self, buffer: B, f: F) -> MapInPlace<Self, F, B> where F: FnMut(&U, &mut B), for <'any> Self: Itemiser<Item<'any> = &'any U>, Self: Sized  {
-    //     MapInPlace {
-    //         itemiser: self,
-    //         transform: f,
-    //         buffer,
-    //     }
-    // }
-    // 
-    // fn for_each<F>(mut self, mut f: F) where F: FnMut(Self::Item<'_>), Self: Sized {
-    //     while let Some(item) = self.next() {
-    //         f(item)
-    //     }
-    // }
-    // 
-    // // fn find<'c, F>(&'c mut self, mut predicate: F) -> Option<Self::Item<'c>> where F: FnMut(&Self::Item<'_>) -> bool, Self: Sized {
-    // fn find<'c, I: ?Sized, F>(&'c mut self, predicate: &mut F) -> Option<Self::Item<'c>> where for <'any> Self: Itemiser<Item<'any> = &'any I>, F: FnMut(&I) -> bool, Self: Sized {
-    //     while let Some(item) = self.next() {
-    //         if predicate(&item) {
-    //             let ptr: *const Self::Item<'_> = &item;
-    //             // mem::forget(item); // only needed if item is an owned value
-    //             // SAFETY: workaround for borrow checker limitation. Prevents `item` from holding a mutable
-    //             // borrow on `self` beyond returning.
-    //             let ptr = unsafe { mem::transmute::<_, *const Self::Item<'c>>(ptr) };
-    //             let item = unsafe {std::ptr::read(ptr)};
-    //             return Some(item)
-    //         }
-    //     }
-    //     None
-    // }
-    // 
-    // // fn filter_<F>(self, mut predicate: F) -> Filter<Self, F> where F: FnMut(&Self::Item<'_>) -> bool, Self: Sized {
-    // fn filter<I: ?Sized, F>(self, predicate: F) -> Filter<Self, F> where for <'any> Self: Itemiser<Item<'any> = &'any I>, F: FnMut(&I) -> bool, Self: Sized {
-    //     Filter {
-    //         itemiser: self,
-    //         predicate,
-    //     }
-    // }
+
+    #[inline]
+    fn map_in_place<B, F>(self, buffer: B, f: F) -> MapInPlace<Self, F, B> where F: FnMut(&Self::Item, &mut B), Self: Sized  {
+        MapInPlace {
+            itemiser: self,
+            transform: f,
+            buffer,
+        }
+    }
+    
+    #[inline]
+    fn for_each<F>(mut self, mut f: F) where F: FnMut(&Self::Item), Self: Sized {
+        while let Some(item) = self.next() {
+            f(item)
+        }
+    }
+    
+    #[inline]
+    fn find<F>(&mut self, predicate: &mut F) -> Option<&Self::Item> where F: FnMut(&Self::Item) -> bool {
+        while let Some(item) = self.next() {
+            if predicate(&item) {
+                // SAFETY: workaround for a borrow checker limitation. Prevents `item` from holding a mutable
+                // borrow on `self` if discarded by the predicate check.
+                return Some(unsafe { expand_lifetime(item) })
+            }
+        }
+        None
+    }
+    
+    #[inline]
+    fn filter<F>(self, predicate: F) -> Filter<Self, F> where  F: FnMut(&Self::Item) -> bool, Self: Sized {
+        Filter {
+            itemiser: self,
+            predicate,
+        }
+    }
+}
+
+#[inline(always)]
+unsafe fn expand_lifetime<'short, 'long, T: ?Sized>(v: &'short T) -> &'long T {
+    unsafe {
+        &*(v as *const T)
+    }
 }
 
 pub struct Iter<S> {
     itemiser: S,
 }
 
-// impl<I: ?Sized + ToOwned + 'static, S> Iterator for Iter<S> where for <'any> S: Itemiser<Item<'any> = &'any I> + 'static {
 impl<S> Iterator for Iter<S> where S: Itemiser, S::Item: ToOwned {
     type Item = <S::Item as ToOwned>::Owned;
 
@@ -111,42 +102,40 @@ impl<V, S, F> Itemiser for Map<S, F, V> where F: FnMut(&S::Item) -> V, S: Itemis
     }
 }
 
-// 
-// pub struct Filter<S, F> {
-//     itemiser: S,
-//     predicate: F
-// }
-// 
-// impl<I: ?Sized + 'static, S, F> Itemiser for Filter<S, F> where for <'any> S: Itemiser<Item<'any> = &'any I> + 'static, F: FnMut(&I) -> bool + 'static {
-//     type Item<'c> = &'c I where Self: 'c;
-// 
-//     fn next<'c>(&'c mut self) -> Option<Self::Item<'c>> {
-//         self.itemiser.find(&mut self.predicate)
-//     }
-// }
-// 
-// 
-// 
-// 
-// pub struct MapInPlace<S, F, B> {
-//     itemiser: S,
-//     transform: F,
-//     buffer: B,
-// }
-// 
-// impl<B, U, S, F> Itemiser for MapInPlace<S, F, B> where F: FnMut(&U, &mut B), for <'any> S: Itemiser<Item<'any> = &'any U> + 'static {
-//     type Item<'c> = &'c B where Self: 'c;
-// 
-//     fn next<'c>(&'c mut self) -> Option<Self::Item<'c>> {
-//         match self.itemiser.next() {
-//             None => None,
-//             Some(item) => {
-//                 (self.transform)(item, &mut self.buffer);
-//                 Some(&self.buffer)
-//             }
-//         }
-//     }
-// }
+pub struct MapInPlace<S, F, B> {
+    itemiser: S,
+    transform: F,
+    buffer: B,
+}
+
+impl<B, S, F> Itemiser for MapInPlace<S, F, B> where F: FnMut(&S::Item, &mut B), S: Itemiser {
+    type Item = B;
+
+    #[inline]
+    fn next(&mut self) -> Option<&Self::Item> {
+        match self.itemiser.next() {
+            None => None,
+            Some(item) => {
+                (self.transform)(item, &mut self.buffer);
+                Some(&self.buffer)
+            }
+        }
+    }
+}
+
+pub struct Filter<S, F> {
+    itemiser: S,
+    predicate: F
+}
+
+impl<S, F> Itemiser for Filter<S, F> where S: Itemiser, F: FnMut(&S::Item) -> bool {
+    type Item = S::Item;
+
+    #[inline]
+    fn next(& mut self) -> Option<&Self::Item> {
+        self.itemiser.find(&mut self.predicate)
+    }
+}
 
 pub struct SliceIt<'a, T> {
     slice: &'a [T],
@@ -181,9 +170,18 @@ impl<'a, T> Itemiser for SliceIt<'a, T> {
 #[cfg(test)]
 mod tests {
     use crate::comb::itemiser::{Itemiser, SliceIt};
+
+    #[test]
+    fn into_iter_empty() {
+        let slice: &[i32] = &[];
+        let itemiser = SliceIt::from(slice);
+        let it = itemiser.into_iter_();
+        let collected = it.collect::<Vec<_>>();
+        assert_eq!(Vec::<i32>::new(), collected);
+    }
     
     #[test]
-    fn into_iter() {
+    fn into_iter_occupied() {
         let slice = [0, 10, 20].as_slice();
         let itemiser = SliceIt::from(slice);
         let it = itemiser.into_iter_();
@@ -199,25 +197,70 @@ mod tests {
     }
 
     #[test]
+    fn for_each() {
+        let slice = [0, 10, 20].as_slice();
+        let itemiser = SliceIt::from(slice);
+        let mut collected = vec![];
+        itemiser.for_each(|item| {
+            collected.push(item.to_owned());
+        });
+        assert_eq!(vec![0, 10, 20], collected);
+    }
+
+    #[test]
     fn map() {
         let slice = [0, 10, 20].as_slice();
         let itemiser = SliceIt::from(slice);
-        let map = itemiser.map_(|item| *item * 10);
+        let mut invocations = 0;
+        let map = itemiser.map_(|item| {
+            invocations += 1;
+            *item * 10
+        });
         assert_eq!(vec![0, 100, 200], map.collect_());
+        assert_eq!(3, invocations);
     }
 
-    // #[test]
-    // fn map_in_place() {
-    //     let itemiser = SliceIt::from([0, 10, 20].as_slice());
-    //     let map = itemiser.map_in_place(0, |item, buffer| *buffer = *item * 10);
-    //     assert_eq!(vec![0, 100, 200], map.collect_());
-    // }
-    // 
-    // #[test]
-    // fn filter() {
-    //     let slice = [0, 1, 2, 3, 4, 5, 6].as_slice();
-    //     let itemiser = SliceIt::from(slice);
-    //     let filter = itemiser.filter(|item| *item % 2 == 0);
-    //     assert_eq!(vec![0, 2, 4, 6], filter.collect_());
-    // }
+    #[test]
+    fn map_in_place() {
+        let itemiser = SliceIt::from([0, 10, 20].as_slice());
+        let mut invocations = 0;
+        let map = itemiser.map_in_place(0, |item, buffer| {
+            invocations += 1;
+            *buffer = *item * 10
+        });
+        assert_eq!(vec![0, 100, 200], map.collect_());
+        assert_eq!(3, invocations);
+    }
+    
+    #[test]
+    fn filter() {
+        let slice = [0, 1, 2, 3, 4, 5, 6].as_slice();
+        let itemiser = SliceIt::from(slice);
+        let mut invocations = 0;
+        let filter = itemiser.filter(|item| {
+            invocations += 1;
+            *item % 2 == 0
+        });
+        assert_eq!(vec![0, 2, 4, 6], filter.collect_());
+        assert_eq!(7, invocations);
+    }
+
+    #[test]
+    fn filter_then_map() {
+        let slice = [0, 1, 2, 3, 4, 5, 6].as_slice();
+        let itemiser = SliceIt::from(slice);
+        let mut filter_invocations = 0;
+        let filter = itemiser.filter(|item| {
+            filter_invocations += 1;
+            *item % 2 == 0
+        });
+        let mut map_invocations = 0;
+        let map = filter.map_(|item| {
+            map_invocations += 1;
+            item * 10
+        });
+        assert_eq!(vec![0, 20, 40, 60], map.collect_());
+        assert_eq!(7, filter_invocations);
+        assert_eq!(4, map_invocations);
+    }
 }
