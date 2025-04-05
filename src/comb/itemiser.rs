@@ -5,33 +5,28 @@ pub trait Itemiser {
 
     fn next<'c>(&'c mut self) -> Option<Self::Item<'c>>;
 
-    fn into_iter_<I: ?Sized>(self) -> Iter<Self> where for <'any> Self: Itemiser<Item<'any> = &'any I>, I: ToOwned, Self: Sized + 'static {
+    fn into_iter_<I: ?Sized>(self) -> Iter<Self> where for <'any> Self: Itemiser<Item<'any> = &'any I>, I: ToOwned, Self: Sized {
         Iter {
             itemiser: self,
         }
     }
-
-    // fn into_iter(self) -> Iter<Self, impl for <'c> Fn(Self::Item<'c>)> where Self: Sized {
-    //     Iter::over(self, |item| {})
-    // }
-
-    // fn into_iter(self) -> Iter<Self, impl for <'c> Fn(&'c mut Self) -> Option<<Self::Item<'c> as ToOwned>::Owned>> where Self: Sized + 'static, for <'d> Self::Item<'d> : ToOwned {
-    //     // Iter::over(self, for <'g> |itemiser: &'g mut Self| -> Option<<Self::Item<'g> as ToOwned>::Owned> {
-    //     //     Self::cl(itemiser)
-    //     // })
-    //     Iter::over(self, Self::constrain(Self::cl))
-    // }
-
-    fn collect_<I>(self) -> Vec<I::Owned> where for <'any> Self: Itemiser<Item<'any> = &'any I>, I: ToOwned + ?Sized, Self: Sized + 'static {
+    
+    fn collect_<I>(mut self) -> Vec<I::Owned> where for <'any> Self: Itemiser<Item<'any> = &'any I>, I: ToOwned + ?Sized, Self: Sized {
         let mut items = vec![];
-        self.for_each(|item| {
-            let owned = item.to_owned();
-            items.push(owned);
-        });
+        // let s= unsafe { Self::expand_lifetime_mut(&mut self) };
+        while let Some(item) = self.next() {
+            items.push(item.to_owned())
+        }
+        // self.for_each(|item| {
+        //     let owned = item.to_owned();
+        //     items.push(owned);
+        // });
         items
     }
 
-    fn map_<V, U: ?Sized + 'static, F>(self, f: F) -> Map<Self, F, V> where F: FnMut(&U) -> V, for <'any> Self: Itemiser<Item<'any> = &'any U>, Self: Sized  {
+    // unsafe fn expand_lifetime_mut<'short, 'long, T: ?Sized>(v: &'short mut T) -> &'long mut T { std::mem::transmute(v) }
+
+    fn map_<V, U: ?Sized, F>(self, f: F) -> Map<Self, F, V> where F: FnMut(&U) -> V, for <'any> Self: Itemiser<Item<'any> = &'any U>, Self: Sized  {
         Map {
             itemiser: self,
             transform: f,
@@ -54,7 +49,7 @@ pub trait Itemiser {
     }
 
     // fn find<'c, F>(&'c mut self, mut predicate: F) -> Option<Self::Item<'c>> where F: FnMut(&Self::Item<'_>) -> bool, Self: Sized {
-    fn find<'c, I: ?Sized, F>(&'c mut self, predicate: &mut F) -> Option<Self::Item<'c>> where for <'any> Self: Itemiser<Item<'any> = &'any I> + 'static, F: FnMut(&I) -> bool, Self: Sized {
+    fn find<'c, I: ?Sized, F>(&'c mut self, predicate: &mut F) -> Option<Self::Item<'c>> where for <'any> Self: Itemiser<Item<'any> = &'any I>, F: FnMut(&I) -> bool, Self: Sized {
         while let Some(item) = self.next() {
             if predicate(&item) {
                 let ptr: *const Self::Item<'_> = &item;
@@ -70,7 +65,7 @@ pub trait Itemiser {
     }
 
     // fn filter_<F>(self, mut predicate: F) -> Filter<Self, F> where F: FnMut(&Self::Item<'_>) -> bool, Self: Sized {
-    fn filter<I: ?Sized + 'static, F>(self, predicate: F) -> Filter<Self, F> where for <'any> Self: Itemiser<Item<'any> = &'any I> + 'static, F: FnMut(&I) -> bool, Self: Sized {
+    fn filter<I: ?Sized, F>(self, predicate: F) -> Filter<Self, F> where for <'any> Self: Itemiser<Item<'any> = &'any I>, F: FnMut(&I) -> bool, Self: Sized {
         Filter {
             itemiser: self,
             predicate,
@@ -84,7 +79,7 @@ pub struct Map<S, F, V> {
     next: Option<V>
 }
 
-impl<V, U: ?Sized + 'static, S, F> Itemiser for Map<S, F, V> where F: FnMut(&U) -> V, for <'any> S: Itemiser<Item<'any> = &'any U> + 'static {
+impl<V, U: ?Sized, S, F> Itemiser for Map<S, F, V> where F: FnMut(&U) -> V, for <'any> S: Itemiser<Item<'any> = &'any U> + 'static {
     type Item<'c> = &'c V where Self: 'c;
 
     fn next<'c>(&'c mut self) -> Option<Self::Item<'c>> {
