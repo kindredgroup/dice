@@ -8,6 +8,7 @@ pub struct Enumerator<'a> {
     index: usize,
     states: usize,
 }
+
 impl<'a> Enumerator<'a> {
     #[inline]
     pub fn new(cardinalities: &'a [usize]) -> Self {
@@ -29,7 +30,7 @@ impl<'a> Enumerator<'a> {
 }
 
 impl Itemiser for Enumerator<'_> {
-    type Item<'c> = &'c [usize] where Self: 'c;
+    type Item = [usize];
 
     fn next(&mut self) -> Option<&[usize]> {
         if self.index != self.states {
@@ -41,21 +42,6 @@ impl Itemiser for Enumerator<'_> {
         }
     }
 }
-
-// impl Iterator for Enumerator<'_> {
-//     type Item = Vec<usize>;
-// 
-//     fn next(&mut self) -> Option<Self::Item> {
-//         if self.index != self.states {
-//             let mut ordinals = vec![0; self.cardinalities.len()];
-//             pick_state(self.cardinalities, self.index, &mut ordinals);
-//             self.index += 1;
-//             Some(ordinals)
-//         } else {
-//             None
-//         }
-//     }
-// }
 
 #[cfg(test)]
 mod tests {
