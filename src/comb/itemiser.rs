@@ -3,6 +3,10 @@ pub trait Itemiser {
 
     fn next(&mut self) -> Option<&Self::Item>;
 
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, None)
+    }
+
     #[inline]
     fn into_iter(self) -> Iter<Self> where Self::Item: ToOwned, Self: Sized {
         Iter {
@@ -83,6 +87,11 @@ impl<S> Iterator for Iter<S> where S: Itemiser, S::Item: ToOwned {
     fn next(&mut self) -> Option<Self::Item> {
         self.itemiser.next().map(ToOwned::to_owned)
     }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.itemiser.size_hint()
+    }
 }
 
 pub struct MapOwned<S, F, V> {
@@ -98,6 +107,11 @@ impl<V, S, F> Itemiser for MapOwned<S, F, V> where F: FnMut(&S::Item) -> V, S: I
     fn next(&mut self) -> Option<&Self::Item> {
         self.next = self.itemiser.next().map(|item| (self.transform)(item));
         self.next.as_ref()
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.itemiser.size_hint()
     }
 }
 
@@ -120,6 +134,11 @@ impl<B, S, F> Itemiser for MapBorrowed<'_, S, F, B> where F: FnMut(&S::Item, &mu
             }
         }
     }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.itemiser.size_hint()
+    }
 }
 
 pub struct Filter<S, F> {
@@ -133,6 +152,12 @@ impl<S, F> Itemiser for Filter<S, F> where S: Itemiser, F: FnMut(&S::Item) -> bo
     #[inline]
     fn next(& mut self) -> Option<&Self::Item> {
         self.itemiser.find(&mut self.predicate)
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (_, upper) = self.itemiser.size_hint();
+        (0, upper) // can't know a lower bound, due to the predicate
     }
 }
 
@@ -164,6 +189,12 @@ impl<T> Itemiser for SliceIt<'_, T> {
             None
         }
     }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.slice.len();
+        (len, Some(len))
+    }
 }
 
 #[cfg(test)]
@@ -175,6 +206,7 @@ mod tests {
         let slice: &[i32] = &[];
         let itemiser = SliceIt::from(slice);
         let it = itemiser.into_iter();
+        assert_eq!((0, Some(0)), it.size_hint());
         let collected = it.collect::<Vec<_>>();
         assert_eq!(Vec::<i32>::new(), collected);
     }
@@ -184,6 +216,7 @@ mod tests {
         let slice = [0, 10, 20].as_slice();
         let itemiser = SliceIt::from(slice);
         let it = itemiser.into_iter();
+        assert_eq!((3, Some(3)), it.size_hint());
         let collected = it.collect::<Vec<_>>();
         assert_eq!(vec![0, 10, 20], collected);
     }
@@ -191,6 +224,7 @@ mod tests {
     #[test]
     fn slice_itemiser_and_collect() {
         let itemiser = SliceIt::from([0, 10, 20].as_slice());
+        assert_eq!((3, Some(3)), itemiser.size_hint());
         let collected = itemiser.collect();
         assert_eq!(vec![0, 10, 20], collected);
     }
@@ -215,6 +249,7 @@ mod tests {
             invocations += 1;
             *item * 10
         });
+        assert_eq!((3, Some(3)), map.size_hint());
         assert_eq!(vec![0, 100, 200], map.collect());
         assert_eq!(3, invocations);
     }
@@ -228,6 +263,7 @@ mod tests {
             invocations += 1;
             *buffer = *item * 10
         });
+        assert_eq!((3, Some(3)), map.size_hint());
         assert_eq!(vec![0, 100, 200], map.collect());
         assert_eq!(3, invocations);
         assert_eq!(200, buffer);
@@ -242,6 +278,7 @@ mod tests {
             invocations += 1;
             *item % 2 == 0
         });
+        assert_eq!((0, Some(7)), filter.size_hint());
         assert_eq!(vec![0, 2, 4, 6], filter.collect());
         assert_eq!(7, invocations);
     }
