@@ -556,7 +556,7 @@ use crate::testing::assert_slice_f64_relative;
         );
         let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = enumerator
-            .into_iter_()
+            .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
                 let prob = harville(&probs, &podium);
@@ -584,7 +584,7 @@ use crate::testing::assert_slice_f64_relative;
         );
         let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = enumerator
-            .into_iter_()
+            .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
                 let prob = harville(&probs, &podium);
@@ -617,7 +617,7 @@ use crate::testing::assert_slice_f64_relative;
         );
         let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = enumerator
-            .into_iter_()
+            .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
                 let prob = harville(&probs, &podium);
@@ -646,7 +646,7 @@ use crate::testing::assert_slice_f64_relative;
         );
         let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = enumerator
-            .into_iter_()
+            .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
                 let prob = harville(&probs, &podium);
@@ -674,7 +674,7 @@ use crate::testing::assert_slice_f64_relative;
         );
         let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = enumerator
-            .into_iter_()
+            .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
                 let prob = harville(&probs, &podium);
@@ -703,7 +703,7 @@ use crate::testing::assert_slice_f64_relative;
         );
         let enumerator = Enumerator::new(&[RUNNERS; RANKS]);
         let probs = enumerator
-            .into_iter_()
+            .into_iter()
             .filter(|podium| is_unique_quadratic(&podium))
             .map(|podium| {
                 let prob = harville(&probs, &podium);
