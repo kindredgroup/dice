@@ -4,7 +4,7 @@ pub trait Generator {
     fn ordinals(&self) -> &[usize];
     
     fn advance(&mut self) -> bool;
-    
+
     #[inline]
     fn into_itemiser(self) -> IntoItemiser<Self> where Self: Sized {
         self.into()

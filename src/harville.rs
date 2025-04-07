@@ -1,9 +1,11 @@
 use crate::comb::permuter::Permuter;
-use crate::comb::{count_permutations, is_unique_linear, pick_permutation, pick_state_hyper, sticky};
+use crate::comb::{count_permutations, is_unique_linear, permuter, pick_permutation, pick_state_hyper, sticky};
 use crate::matrix::Matrix;
 use crate::probs::SliceExt;
 use std::cmp::max;
 use tinyrand::{Rand, StdRand};
+use crate::capture::CaptureMut;
+use crate::comb::generator::Generator;
 
 #[inline]
 pub fn harville(probs: &Matrix<f64>, podium: &[usize]) -> f64 {
@@ -269,7 +271,10 @@ pub fn stacked_harville_summary_no_alloc(
             let total_permutations = count_permutations(runners - 1, rank);
             log::trace!("runner: {runner}: rank: {rank}, total_perms: {total_permutations}, quota: {quota}, sans_self: {sans_self:?}");
 
-            let mut permuter = Permuter::new_no_alloc(rank, bitmap, &mut sans_self_podium);
+            let mut permuter = Permuter::new_no_alloc(rank, permuter::Alloc {
+                bitmap: CaptureMut::Borrowed(bitmap),
+                ordinals: CaptureMut::Borrowed(&mut sans_self_podium),
+            });
             let mut permutation = 0;
             loop {
                 for (index, ordinal) in &mut permuter.ordinals().iter().enumerate() {
@@ -284,7 +289,7 @@ pub fn stacked_harville_summary_no_alloc(
                     break;
                 }
 
-                if !permuter.step() {
+                if !permuter.advance() {
                     break;
                 }
                 

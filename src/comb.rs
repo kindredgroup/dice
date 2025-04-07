@@ -173,7 +173,18 @@ fn is_full(bitmap: &[bool], min: usize) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use crate::comb::generator::Generator;
+    use crate::itemiser::Itemiser;
     use super::*;
+
+    pub(crate) fn iterate_generator(generator: impl Generator) -> Vec<Vec<usize>> {
+        let outputs = generator.into_itemiser().into_vec();
+        println!("ordinals:");
+        for ordinals in &outputs {
+            println!("{ordinals:?}")
+        }
+        outputs
+    }
 
     #[test]
     fn test_pick_state() {
