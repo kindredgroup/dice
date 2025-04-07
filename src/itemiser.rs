@@ -193,8 +193,8 @@ impl<T> Itemiser for SliceIt<'_, T> {
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let len = self.slice.len();
-        (len, Some(len))
+        let remaining = self.slice.len() - self.index;
+        (remaining, Some(remaining))
     }
 }
 
@@ -223,7 +223,18 @@ mod tests {
     }
 
     #[test]
-    fn slice_itemiser_and_into_vec() {
+    fn slice_itemiser() {
+        let mut itemiser = SliceIt::from([0, 10].as_slice());
+        assert_eq!((2, Some(2)), itemiser.size_hint());
+        assert_eq!(Some(&0), itemiser.next());
+        assert_eq!((1, Some(1)), itemiser.size_hint());
+        assert_eq!(Some(&10), itemiser.next());
+        assert_eq!((0, Some(0)), itemiser.size_hint());
+        assert_eq!(None, itemiser.next());
+    }
+
+    #[test]
+    fn into_vec() {
         let itemiser = SliceIt::from([0, 10, 20].as_slice());
         assert_eq!((3, Some(3)), itemiser.size_hint());
         let collected = itemiser.into_vec();
