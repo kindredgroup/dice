@@ -1,4 +1,4 @@
-use crate::comb::itemiser::Itemiser;
+use crate::itemiser::Itemiser;
 
 pub trait Occupied {
     fn ordinals(&self) -> &[usize];

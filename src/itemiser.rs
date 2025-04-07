@@ -15,8 +15,9 @@ pub trait Itemiser {
     }
 
     #[inline]
-    fn collect(mut self) -> Vec<<Self::Item as ToOwned>::Owned> where Self::Item: ToOwned, Self: Sized {
-        let mut items = vec![];
+    fn into_vec(mut self) -> Vec<<Self::Item as ToOwned>::Owned> where Self::Item: ToOwned, Self: Sized {
+        let (min_size, _) = self.size_hint();
+        let mut items = Vec::with_capacity(min_size);
         while let Some(item) = self.next() {
             items.push(item.to_owned())
         }
@@ -199,7 +200,7 @@ impl<T> Itemiser for SliceIt<'_, T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::comb::itemiser::{Itemiser, SliceIt};
+    use crate::itemiser::{Itemiser, SliceIt};
 
     #[test]
     fn into_iter_empty() {
@@ -222,10 +223,11 @@ mod tests {
     }
 
     #[test]
-    fn slice_itemiser_and_collect() {
+    fn slice_itemiser_and_into_vec() {
         let itemiser = SliceIt::from([0, 10, 20].as_slice());
         assert_eq!((3, Some(3)), itemiser.size_hint());
-        let collected = itemiser.collect();
+        let collected = itemiser.into_vec();
+        assert_eq!(3, collected.capacity());
         assert_eq!(vec![0, 10, 20], collected);
     }
 
@@ -250,7 +252,7 @@ mod tests {
             *item * 10
         });
         assert_eq!((3, Some(3)), map.size_hint());
-        assert_eq!(vec![0, 100, 200], map.collect());
+        assert_eq!(vec![0, 100, 200], map.into_vec());
         assert_eq!(3, invocations);
     }
 
@@ -264,7 +266,7 @@ mod tests {
             *buffer = *item * 10
         });
         assert_eq!((3, Some(3)), map.size_hint());
-        assert_eq!(vec![0, 100, 200], map.collect());
+        assert_eq!(vec![0, 100, 200], map.into_vec());
         assert_eq!(3, invocations);
         assert_eq!(200, buffer);
     }
@@ -279,7 +281,7 @@ mod tests {
             *item % 2 == 0
         });
         assert_eq!((0, Some(7)), filter.size_hint());
-        assert_eq!(vec![0, 2, 4, 6], filter.collect());
+        assert_eq!(vec![0, 2, 4, 6], filter.into_vec());
         assert_eq!(7, invocations);
     }
 
@@ -297,7 +299,7 @@ mod tests {
             map_invocations += 1;
             item * 10
         });
-        assert_eq!(vec![0, 20, 40, 60], map.collect());
+        assert_eq!(vec![0, 20, 40, 60], map.into_vec());
         assert_eq!(7, filter_invocations);
         assert_eq!(4, map_invocations);
     }
