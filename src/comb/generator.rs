@@ -1,21 +1,23 @@
 use crate::itemiser::Itemiser;
 
-pub trait Occupied {
+pub trait Generator {
     fn ordinals(&self) -> &[usize];
     
-    fn step(&mut self) -> bool;
+    fn advance(&mut self) -> bool;
     
+    #[inline]
     fn into_itemiser(self) -> IntoItemiser<Self> where Self: Sized {
         self.into()
     }
 }
 
-pub struct IntoItemiser<O: Occupied> {
+pub struct IntoItemiser<O: Generator> {
     occupied: O,
     initial: bool,
 }
 
-impl<O: Occupied> From<O> for IntoItemiser<O> {
+impl<O: Generator> From<O> for IntoItemiser<O> {
+    #[inline]
     fn from(occupied: O) -> Self {
         Self {
             occupied,
@@ -24,15 +26,16 @@ impl<O: Occupied> From<O> for IntoItemiser<O> {
     }
 }
 
-impl<'a, I: Occupied> Itemiser for IntoItemiser<I> {
+impl<'a, I: Generator> Itemiser for IntoItemiser<I> {
     type Item = [usize];
 
+    #[inline]
     fn next(&mut self) -> Option<&Self::Item> {
         let has_more = if self.initial {
             self.initial = false;
             true
         } else {
-            self.occupied.step()
+            self.occupied.advance()
         };
         if has_more {
             Some(self.occupied.ordinals())

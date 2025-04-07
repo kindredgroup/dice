@@ -1,5 +1,5 @@
 use crate::capture::CaptureMut;
-use crate::comb::occupied::Occupied;
+use crate::comb::generator::Generator;
 
 #[derive(Debug)]
 pub struct Combiner<'a> {
@@ -24,14 +24,14 @@ impl<'a> Combiner<'a> {
     }
 }
 
-impl Occupied for Combiner<'_> {
+impl Generator for Combiner<'_> {
     #[inline]
     fn ordinals(&self) -> &[usize] {
         &self.ordinals
     }
 
     #[inline]
-    fn step(&mut self) -> bool {
+    fn advance(&mut self) -> bool {
         if self.ordinals.is_empty() {
             return false;
         }
@@ -62,7 +62,7 @@ impl Occupied for Combiner<'_> {
 #[cfg(test)]
 mod tests {
     use crate::comb::combiner::Combiner;
-    use crate::comb::occupied::Occupied;
+    use crate::comb::generator::Generator;
     use crate::comb::tests::inner_array_to_vec;
 
     fn iterate_combiner(n: usize, r: usize) -> Vec<Vec<usize>> {
@@ -77,7 +77,7 @@ mod tests {
                 .collect::<Vec<_>>();
             println!("{ordinals:?},");
             outputs.push(ordinals);
-            if !combiner.step() {
+            if !combiner.advance() {
                 break;
             }
         }

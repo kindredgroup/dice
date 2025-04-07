@@ -3,7 +3,7 @@
 pub mod bitmap;
 pub mod combiner;
 pub mod enumerator;
-pub mod occupied;
+pub mod generator;
 pub mod permuter;
 pub mod sticky;
 

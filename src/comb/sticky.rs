@@ -1,6 +1,6 @@
 use crate::comb::bitmap::Bitmap;
 use crate::comb::combiner::Combiner;
-use crate::comb::occupied::Occupied;
+use crate::comb::generator::Generator;
 
 pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
     let mut combiner = Combiner::new(n, r);
@@ -11,7 +11,7 @@ pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
         if !_permute(&elements, &stack, &mut f, 0) {
             break;
         }
-        if !combiner.step() {
+        if !combiner.advance() {
             break;
         }
     }
