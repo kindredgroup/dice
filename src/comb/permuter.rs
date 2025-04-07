@@ -1,5 +1,4 @@
 use crate::capture::CaptureMut;
-use crate::comb::{is_full, take_next_available};
 use crate::comb::generator::Generator;
 
 #[derive(Debug)]
@@ -54,6 +53,23 @@ impl<'a> Permuter<'a> {
             ordinals,
         }
     }
+}
+
+#[inline(always)]
+fn take_next_available(bitmap: &mut [bool], min: usize) -> Option<usize> {
+    for b in min..bitmap.len() {
+        if bitmap[b] {
+            continue;
+        }
+        bitmap[b] = true;
+        return Some(b);
+    }
+    None
+}
+
+#[inline(always)]
+fn is_full(bitmap: &[bool], min: usize) -> bool {
+    bitmap[min..].iter().all(|b| *b)
 }
 
 impl Generator for Permuter<'_> {

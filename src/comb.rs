@@ -154,23 +154,6 @@ pub fn pick_permutation_reverse(
     }
 }
 
-#[inline(always)]
-fn take_next_available(bitmap: &mut [bool], min: usize) -> Option<usize> {
-    for b in min..bitmap.len() {
-        if bitmap[b] {
-            continue;
-        }
-        bitmap[b] = true;
-        return Some(b);
-    }
-    None
-}
-
-#[inline(always)]
-fn is_full(bitmap: &[bool], min: usize) -> bool {
-    bitmap[min..].iter().all(|b| *b)
-}
-
 #[cfg(test)]
 mod tests {
     use crate::comb::generator::Generator;

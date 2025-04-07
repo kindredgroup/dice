@@ -68,8 +68,7 @@ pub fn harville_summary_no_alloc(
         "number of columns in the probabilities matrix must equal to the bitmap length"
     );
     let runners = probs.cols();
-
-
+    
     // the cost of traversing a permutation is n^2, while the cost of traversing a state is r, where
     // n is the number of runners and r is the number of ranks
     let permutations = count_permutations(runners, ranks);
