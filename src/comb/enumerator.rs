@@ -11,13 +11,18 @@ pub struct Enumerator<'a> {
 
 impl<'a> Enumerator<'a> {
     #[inline]
+    pub fn alloc(dimensions: usize) -> CaptureMut<'a, Vec<usize>, [usize]> {
+        vec![0; dimensions].into()
+    }
+    
+    #[inline]
     pub fn new(cardinalities: &'a [usize]) -> Self {
-        Self::new_no_alloc(cardinalities, vec![0; cardinalities.len()].into())
+        Self::new_no_alloc(cardinalities, Self::alloc(cardinalities.len()))
     }
     
     #[inline]
     pub fn new_no_alloc(cardinalities: &'a [usize], ordinals: CaptureMut<'a, Vec<usize>, [usize]>) -> Self {
-        debug_assert_eq!(cardinalities.len(), ordinals.len(), "length of cardinalities must equal to length of ordinals");
+        debug_assert_eq!(cardinalities.len(), ordinals.len(), "length of cardinalities must equal the length of ordinals");
         
         let states = count_states(cardinalities);
         Self {
@@ -32,6 +37,7 @@ impl<'a> Enumerator<'a> {
 impl Itemiser for Enumerator<'_> {
     type Item = [usize];
 
+    #[inline]
     fn next(&mut self) -> Option<&[usize]> {
         if self.index != self.states {
             pick_state(self.cardinalities, self.index, &mut self.ordinals);
@@ -40,6 +46,12 @@ impl Itemiser for Enumerator<'_> {
         } else {
             None
         }
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.states - self.index;
+        (remaining, Some(remaining))
     }
 }
 
@@ -52,6 +64,7 @@ mod tests {
     #[test]
     fn iterator_0() {
         let enumerator = Enumerator::new(&[]);
+        assert_eq!((1, Some(1)), enumerator.size_hint());
         let outputs = enumerator.into_vec();
         let expected_outputs = vec![
             [],
@@ -62,6 +75,7 @@ mod tests {
     #[test]
     fn iterator_1() {
         let enumerator = Enumerator::new(&[1]);
+        assert_eq!((1, Some(1)), enumerator.size_hint());
         let outputs = enumerator.into_vec();
         let expected_outputs = vec![
             [0]
@@ -72,6 +86,7 @@ mod tests {
     #[test]
     fn iterator_1_empty() {
         let enumerator = Enumerator::new(&[0]);
+        assert_eq!((0, Some(0)), enumerator.size_hint());
         let outputs = enumerator.into_vec();
         let expected_outputs: Vec<[usize; 0]> = vec![
         ];
@@ -81,6 +96,7 @@ mod tests {
     #[test]
     fn iterator_3() {
         let enumerator = Enumerator::new(&[2, 3, 4]);
+        assert_eq!((24, Some(24)), enumerator.size_hint());
         let outputs = enumerator.into_vec();
         let expected_outputs = vec![
             [0, 0, 0],
