@@ -3,7 +3,7 @@ pub mod probs_sim;
 
 use crate::capture::Capture;
 use crate::dilative::DilatedProbs;
-use crate::harville::{classic, harville_est, harville_summary_condensed, poly_harville_summary, stacked_harville_summary, superstacked_harville_summary};
+use crate::harville::{classic, harville_est, poly_harville_summary, stacked_harville_summary, superstacked_harville_summary};
 use crate::market::{Market, Overround, OverroundMethod, PriceBounds};
 use crate::matrix::Matrix;
 use crate::opt::{UnivariateDescentConfig, univariate_descent};
@@ -54,7 +54,14 @@ pub fn win_to_harville_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
             .with_win_probs(Capture::Borrowed(win_probs))
             .with_podium_places(k),
     );
-    harville_summary_condensed(&win_probs, k)
+    let rank_probs = classic::summary(&win_probs);
+    (0..rank_probs.cols())
+        .map(|col| {
+            (0..rank_probs.rows())
+                .map(|row| rank_probs[(row, col)])
+                .sum()
+        })
+        .collect()
 }
 
 /// Produces place probability estimates for `k` placings using an alternative Harville estimation method.
