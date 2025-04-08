@@ -1,6 +1,6 @@
 use dice::capture::Capture;
 use dice::dilative::DilatedProbs;
-use dice::harville::{poly_harville_summary, stacked_harville_summary, superstacked_harville_summary, classic};
+use dice::harville::{classic, rand_samp, stacked_harville_summary, superstacked_harville_summary};
 use dice::matrix::Matrix;
 use dice::probs::SliceExt;
 use stanza::renderer::markdown::Markdown;
@@ -102,14 +102,14 @@ pub fn harville(win_probs: &[f64], k: usize) -> Matrix<f64> {
     classic::summary(&dilated_probs)
 }
 
-pub fn poly_harville(win_probs: &[f64], k: usize) -> Matrix<f64> {
+pub fn rand_samp(win_probs: &[f64], k: usize) -> Matrix<f64> {
     const DEGREE: usize = 4;
     let dilated_probs = Matrix::from(
         DilatedProbs::default()
             .with_win_probs(Capture::Borrowed(win_probs))
             .with_podium_places(k),
     );
-    poly_harville_summary(&dilated_probs, k, DEGREE)
+    rand_samp::summary(&dilated_probs, DEGREE)
 }
 
 pub fn stacked_harville(win_probs: &[f64], k: usize) -> Matrix<f64> {

@@ -3,7 +3,7 @@ pub mod probs_sim;
 
 use crate::capture::Capture;
 use crate::dilative::DilatedProbs;
-use crate::harville::{classic, harville_est, poly_harville_summary, stacked_harville_summary, superstacked_harville_summary};
+use crate::harville::{classic, harville_est, rand_samp, stacked_harville_summary, superstacked_harville_summary};
 use crate::market::{Market, Overround, OverroundMethod, PriceBounds};
 use crate::matrix::Matrix;
 use crate::opt::{UnivariateDescentConfig, univariate_descent};
@@ -11,7 +11,7 @@ use crate::probs::SliceExt;
 use std::ops::Div;
 
 /// Converts win odds to place using naive (E/W) odds-ratio.
-pub fn win_to_place_odds(win_odds: &[f64], d: usize) -> Vec<f64> {
+pub fn win_to_or_place_odds(win_odds: &[f64], d: usize) -> Vec<f64> {
     let d = d as f64;
     win_odds
         .iter()
@@ -20,7 +20,7 @@ pub fn win_to_place_odds(win_odds: &[f64], d: usize) -> Vec<f64> {
 }
 
 /// Produces place probability estimates for `k` placings using the Booksum-Adjusted Odds-Ratio method.
-pub fn win_to_baor_redist_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
+pub fn win_to_baor_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
     let k = k as f64;
     let mut place_probs = win_probs
         .iter()
@@ -47,7 +47,7 @@ pub fn win_to_dynor_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
     market.prices.invert().collect()
 }
 
-/// Produces place probability estimates for `k` placings using the Harville method.
+/// Produces place probability estimates for `k` placings using the classic Harville method.
 pub fn win_to_harville_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
     let win_probs = Matrix::from(
         DilatedProbs::default()
@@ -132,7 +132,7 @@ pub fn win_to_poly_harville_place_probs(win_probs: &[f64], k: usize, degree: usi
             .with_win_probs(Capture::Borrowed(win_probs))
             .with_podium_places(k),
     );
-    let rank_probs = poly_harville_summary(&win_probs, k, degree);
+    let rank_probs = rand_samp::summary(&win_probs, degree);
     (0..rank_probs.cols())
         .map(|col| {
             (0..rank_probs.rows())

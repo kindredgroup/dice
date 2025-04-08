@@ -1,5 +1,5 @@
 use std::time::Instant;
-use crate::each_way::{win_to_baor_redist_place_probs, win_to_harville_place_probs, win_to_upscaled_place_probs, win_to_place_odds};
+use crate::each_way::{win_to_baor_place_probs, win_to_harville_place_probs, win_to_upscaled_place_probs, win_to_or_place_odds};
 use crate::probs::SliceExt;
 use tinyrand::Rand;
 use crate::random;
@@ -18,7 +18,7 @@ impl Estimator {
     fn win_to_place_probs(&self, win_probs: &[f64], k: usize) -> Vec<f64> {
         match self {
             Estimator::Harville => win_to_harville_place_probs(win_probs, k),
-            Estimator::BAOR => win_to_baor_redist_place_probs(win_probs, k),
+            Estimator::BAOR => win_to_baor_place_probs(win_probs, k),
             Estimator::Upscaling(max_fit_rank) => win_to_upscaled_place_probs(win_probs, k, std::cmp::min(k - 2, *max_fit_rank)),
         }
     }
@@ -99,7 +99,7 @@ fn simulate_one(scenario: &Scenario, rand: &mut impl Rand) -> SimulationResult {
     let win_odds = probs_to_odds(&win_probs, scenario.win_overround);
     log::trace!("win_odds={win_odds:?}, booksum={}", win_odds.booksum());
 
-    let place_odds = win_to_place_odds(&win_odds, scenario.d);
+    let place_odds = win_to_or_place_odds(&win_odds, scenario.d);
     log::trace!(
         "place_odds={place_odds:?}, booksum={}",
         place_odds.booksum()

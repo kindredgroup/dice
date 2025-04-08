@@ -1,11 +1,11 @@
-use std::time::Duration;
 use criterion::{criterion_group, criterion_main, Criterion};
 use dice::capture::Capture;
 use dice::dilative::DilatedProbs;
-use dice::harville::poly_harville_summary_no_alloc;
+use dice::harville::rand_samp;
 use dice::matrix::Matrix;
 use dice::probs::SliceExt;
 use dice::random;
+use std::time::Duration;
 use tinyrand::StdRand;
 
 fn criterion_benchmark(c: &mut Criterion) {
@@ -18,16 +18,11 @@ fn criterion_benchmark(c: &mut Criterion) {
                 .with_win_probs(Capture::Owned(win_probs))
                 .with_podium_places(k),
         );
-        let mut summary = Matrix::allocate(k, n);
-        let mut podium = vec![0; k];
-        let mut bitmap = vec![false; n];
-        let mut rand = StdRand::default();
+        let mut alloc = rand_samp::Alloc::new(n, k);
         
-        // let mut group = c.benchmark_group("cri_poly_harville");
-        // group.measurement_time(Duration::from_secs(10));
         c.bench_function(&format!("cri_poly_harville_{n}x{k}_d{degree}"), |b| {
             b.iter(|| {
-                poly_harville_summary_no_alloc(&dilated_probs, k, degree, &mut podium, &mut bitmap, &mut rand, &mut summary);
+                rand_samp::summary_no_alloc(&dilated_probs, degree, &mut alloc);
             });
         });
     }
