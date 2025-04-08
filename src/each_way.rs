@@ -3,15 +3,15 @@ pub mod probs_sim;
 
 use crate::capture::Capture;
 use crate::dilative::DilatedProbs;
-use crate::harville::{classic, harville_est, rand_samp, stacked_harville_summary, superstacked_harville_summary};
+use crate::harville::{classic, harville_est, mass_samp, rand_samp, sticky_samp};
 use crate::market::{Market, Overround, OverroundMethod, PriceBounds};
 use crate::matrix::Matrix;
-use crate::opt::{UnivariateDescentConfig, univariate_descent};
+use crate::opt::{univariate_descent, UnivariateDescentConfig};
 use crate::probs::SliceExt;
 use std::ops::Div;
 
 /// Converts win odds to place using naive (E/W) odds-ratio.
-pub fn win_to_or_place_odds(win_odds: &[f64], d: usize) -> Vec<f64> {
+pub fn win_to_place_or(win_odds: &[f64], d: usize) -> Vec<f64> {
     let d = d as f64;
     win_odds
         .iter()
@@ -20,7 +20,7 @@ pub fn win_to_or_place_odds(win_odds: &[f64], d: usize) -> Vec<f64> {
 }
 
 /// Produces place probability estimates for `k` placings using the Booksum-Adjusted Odds-Ratio method.
-pub fn win_to_baor_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
+pub fn win_to_place_baor(win_probs: &[f64], k: usize) -> Vec<f64> {
     let k = k as f64;
     let mut place_probs = win_probs
         .iter()
@@ -32,7 +32,7 @@ pub fn win_to_baor_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
 }
 
 /// Produces place probability estimates for `k` placings using the Dynamic Odds-Ratio method.
-pub fn win_to_dynor_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
+pub fn win_to_place_dynor(win_probs: &[f64], k: usize) -> Vec<f64> {
     const BOUNDS: PriceBounds = 1.04..=10_001.0;
 
     let market = Market::frame(
@@ -48,7 +48,7 @@ pub fn win_to_dynor_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
 }
 
 /// Produces place probability estimates for `k` placings using the classic Harville method.
-pub fn win_to_harville_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
+pub fn win_to_place_harville(win_probs: &[f64], k: usize) -> Vec<f64> {
     let win_probs = Matrix::from(
         DilatedProbs::default()
             .with_win_probs(Capture::Borrowed(win_probs))
@@ -65,7 +65,7 @@ pub fn win_to_harville_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
 }
 
 /// Produces place probability estimates for `k` placings using an alternative Harville estimation method.
-pub fn win_to_est_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
+pub fn win_to_place_est(win_probs: &[f64], k: usize) -> Vec<f64> {
     let all_rank_probs = (2..=k)
         .map(|rank| harville_est(&win_probs, rank, 1.0))
         .collect::<Vec<_>>();
@@ -78,7 +78,7 @@ pub fn win_to_est_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
         .collect()
 }
 
-pub fn win_to_upscaled_place_probs(win_probs: &[f64], k: usize, fit_rank_idx: usize) -> Vec<f64> {
+pub fn win_to_place_upscaled(win_probs: &[f64], k: usize, fit_rank_idx: usize) -> Vec<f64> {
     let harville = classic::summary(
         &Matrix::from(
             DilatedProbs::default()
@@ -126,7 +126,7 @@ pub fn win_to_upscaled_place_probs(win_probs: &[f64], k: usize, fit_rank_idx: us
 }
 
 /// Produces place probability estimates for `k` placings using the poly-Harville method.
-pub fn win_to_poly_harville_place_probs(win_probs: &[f64], k: usize, degree: usize) -> Vec<f64> {
+pub fn win_to_place_rand_samp(win_probs: &[f64], k: usize, degree: usize) -> Vec<f64> {
     let win_probs = Matrix::from(
         DilatedProbs::default()
             .with_win_probs(Capture::Borrowed(win_probs))
@@ -142,13 +142,13 @@ pub fn win_to_poly_harville_place_probs(win_probs: &[f64], k: usize, degree: usi
         .collect()
 }
 
-pub fn win_to_stacked_harville_place_probs(win_probs: &[f64], k: usize, degree: usize) -> Vec<f64> {
+pub fn win_to_place_mass_samp(win_probs: &[f64], k: usize, degree: usize) -> Vec<f64> {
     let win_probs = Matrix::from(
         DilatedProbs::default()
             .with_win_probs(Capture::Borrowed(win_probs))
             .with_podium_places(k),
     );
-    let rank_probs = stacked_harville_summary(&win_probs, k, degree);
+    let rank_probs = mass_samp::summary(&win_probs, degree);
     let mut place_probs = (0..rank_probs.cols())
         .map(|col| {
             (0..rank_probs.rows())
@@ -160,13 +160,13 @@ pub fn win_to_stacked_harville_place_probs(win_probs: &[f64], k: usize, degree: 
     place_probs
 }
 
-pub fn win_to_superstacked_harville_place_probs(win_probs: &[f64], k: usize, degree: usize) -> Vec<f64> {
+pub fn win_to_place_stick_samp(win_probs: &[f64], k: usize, degree: usize) -> Vec<f64> {
     let win_probs = Matrix::from(
         DilatedProbs::default()
             .with_win_probs(Capture::Borrowed(win_probs))
             .with_podium_places(k),
     );
-    let rank_probs = superstacked_harville_summary(&win_probs, k, degree);
+    let rank_probs = sticky_samp::summary(&win_probs, k, degree);
     let mut place_probs = (0..rank_probs.cols())
         .map(|col| {
             (0..rank_probs.rows())

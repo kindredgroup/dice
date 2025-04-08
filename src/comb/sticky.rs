@@ -20,16 +20,7 @@ pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
 fn _permute(elements: &Bitmap, stack: &[usize], f: &mut impl FnMut(&[usize]) -> bool, depth: usize) -> bool {
     if !elements.is_empty() {
         for Split(head, tail) in Splitter::new(&elements) {
-            //println!("{}permuting split {head}-{tail}, stack: {stack:?}", "  ".repeat(depth));
-            // let mut permutation = Vec::with_capacity(head.size() + 1 + stack.len());
-            // for ordinal in head.ordinals() {
-            //     permutation.push(ordinal);
-            // }
-            // permutation.push(tail);
-            // for &ordinal in stack {
-            //     permutation.push(ordinal);
-            // }
-
+            println!("{}permuting split {head}-{tail}, stack: {stack:?}", "  ".repeat(depth));
             let mut new_stack = Vec::with_capacity(stack.len() + 1);
             new_stack.push(tail);
             for ordinal in stack {
@@ -47,14 +38,15 @@ fn _permute(elements: &Bitmap, stack: &[usize], f: &mut impl FnMut(&[usize]) -> 
 
 struct Splitter<'a> {
     all: &'a Bitmap,
-    ordinal: Option<usize>,
+    omitted: Option<usize>,
 }
 
 impl<'a> Splitter<'a> {
+    #[inline]
     pub fn new(all: &'a Bitmap) -> Self {
         Self {
             all,
-            ordinal: Some(all.len() - 1)
+            omitted: Some(all.len() - 1)
         }
     }
 }
@@ -62,21 +54,22 @@ impl<'a> Splitter<'a> {
 impl<'a> Iterator for Splitter<'a> {
     type Item = Split;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            match &mut self.ordinal {
+            match &mut self.omitted {
                 None => return None,
-                Some(ordinal) => {
-                    let mut subset = self.all.clone();
-                    let prev = *ordinal;
-                    if *ordinal != 0 {
-                        *ordinal -= 1;
+                Some(omitted) => {
+                    let curr_omitted = *omitted;
+                    if *omitted != 0 {
+                        *omitted -= 1;
                     } else {
-                        self.ordinal = None
+                        self.omitted = None
                     }
-                    if subset[prev] {
-                        subset[prev] = false;
-                        return Some(Split(subset, prev))
+                    if self.all[curr_omitted] {
+                        let mut subset = self.all.clone();
+                        subset[curr_omitted] = false;
+                        return Some(Split(subset, curr_omitted))
                     }
                 }
             }

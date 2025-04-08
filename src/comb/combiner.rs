@@ -3,8 +3,8 @@ use crate::comb::generator::Generator;
 
 #[derive(Debug)]
 pub struct Combiner<'a> {
-    ordinals: CaptureMut<'a, Vec<usize>, [usize]>,
     n: usize,
+    ordinals: CaptureMut<'a, Vec<usize>, [usize]>,
 }
 
 impl<'a> Combiner<'a> {

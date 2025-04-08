@@ -1,6 +1,6 @@
 use dice::capture::Capture;
 use dice::dilative::DilatedProbs;
-use dice::harville::{classic, rand_samp, stacked_harville_summary, superstacked_harville_summary};
+use dice::harville::{classic, mass_samp, rand_samp, sticky_samp};
 use dice::matrix::Matrix;
 use dice::probs::SliceExt;
 use stanza::renderer::markdown::Markdown;
@@ -33,7 +33,7 @@ fn main() {
         log::info!("Win probs:\n{}", Markdown::default().render(&table));
     }
 
-    let rank_probs = superstacked_harville(&win_probs, k);
+    let rank_probs = mass_samp(&win_probs, k);
     {
         let table = Table::default()
             .with_row(Row::new(
@@ -112,22 +112,22 @@ pub fn rand_samp(win_probs: &[f64], k: usize) -> Matrix<f64> {
     rand_samp::summary(&dilated_probs, DEGREE)
 }
 
-pub fn stacked_harville(win_probs: &[f64], k: usize) -> Matrix<f64> {
+pub fn mass_samp(win_probs: &[f64], k: usize) -> Matrix<f64> {
     const DEGREE: usize = 3;
     let dilated_probs = Matrix::from(
         DilatedProbs::default()
             .with_win_probs(Capture::Borrowed(win_probs))
             .with_podium_places(k),
     );
-    stacked_harville_summary(&dilated_probs, k, DEGREE)
+    mass_samp::summary(&dilated_probs, DEGREE)
 }
 
-pub fn superstacked_harville(win_probs: &[f64], k: usize) -> Matrix<f64> {
+pub fn sticky_samp(win_probs: &[f64], k: usize) -> Matrix<f64> {
     const DEGREE: usize = 3;
     let dilated_probs = Matrix::from(
         DilatedProbs::default()
             .with_win_probs(Capture::Borrowed(win_probs))
             .with_podium_places(k),
     );
-    superstacked_harville_summary(&dilated_probs, k, DEGREE)
+    sticky_samp::summary(&dilated_probs, k, DEGREE)
 }

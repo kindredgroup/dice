@@ -82,8 +82,8 @@ fn main() {
                 format!("{:.6}", quantile_errors[2]).into(),
                 format!("{:.6}", quantile_errors[3]).into(),
                 format!("{:.6}", quantile_errors[4]).into(),
-                format!("{:.3}", stats.benchmark_duration.as_secs()).into(),
-                format!("{:.3}", stats.contender_duration.as_secs()).into(),
+                format!("{:.3}", stats.benchmark_duration.as_secs_f64()).into(),
+                format!("{:.3}", stats.contender_duration.as_secs_f64()).into(),
                 format!("{:.1}", stats.benchmark_duration.as_secs_f64() / stats.contender_duration.as_secs_f64()).into()
             ])
         }));
@@ -99,7 +99,7 @@ fn simulate_all(scenarios: Vec<Scenario>) -> Vec<(Scenario, Stats)> {
                 &scenario,
                 TRIALS,
                 &mut rand,
-                &dice::each_way::win_to_harville_place_probs,
+                &dice::each_way::win_to_place_harville,
                 // &dice::each_way::win_to_baor_redist_place_probs,
                 // &dice::each_way::win_to_est_place_probs,
                 // &|win_probs, k| {
@@ -109,7 +109,7 @@ fn simulate_all(scenarios: Vec<Scenario>) -> Vec<(Scenario, Stats)> {
                 //     dice::each_way::win_to_poly_harville_place_probs(win_probs, k, 4)
                 // }
                 &|win_probs, k| {
-                    dice::each_way::win_to_stacked_harville_place_probs(win_probs, k, 3)
+                    dice::each_way::win_to_place_mass_samp(win_probs, k, 3)
                 }
                 // &|win_probs, k| {
                 //     dice::each_way::win_to_superstacked_harville_place_probs(win_probs, k, 3)

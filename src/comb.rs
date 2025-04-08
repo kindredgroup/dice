@@ -5,6 +5,7 @@ pub mod combiner;
 pub mod enumerator;
 pub mod generator;
 pub mod permuter;
+pub mod split_combiner;
 pub mod sticky;
 
 #[inline]
