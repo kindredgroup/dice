@@ -12,12 +12,12 @@ fn main() {
     env_logger::init();
 
     let results = simulate_all(vec![
-        // Scenario { field: 8, k: 2 },
-        // Scenario { field: 8, k: 3 },
-        // Scenario { field: 8, k: 4 },
-        // Scenario { field: 8, k: 5 },
-        // Scenario { field: 8, k: 6 },
-        // Scenario { field: 8, k: 7 },
+        Scenario { field: 8, k: 2 },
+        Scenario { field: 8, k: 3 },
+        Scenario { field: 8, k: 4 },
+        Scenario { field: 8, k: 5 },
+        Scenario { field: 8, k: 6 },
+        Scenario { field: 8, k: 7 },
         // Scenario { field: 10, k: 3 },
         // Scenario { field: 10, k: 4 },
         // Scenario { field: 10, k: 5 },
@@ -36,16 +36,16 @@ fn main() {
         // Scenario { field: 18, k: 4 },
         // Scenario { field: 18, k: 5 },
         // Scenario { field: 18, k: 6 },
-        Scenario { field: 20, k: 3 },
-        Scenario { field: 20, k: 4 },
-        Scenario { field: 20, k: 5 },
-        Scenario { field: 20, k: 6 },
-        Scenario { field: 24, k: 3 },
-        Scenario { field: 24, k: 4 },
-        Scenario { field: 24, k: 5 },
-        Scenario { field: 24, k: 6 },
-        Scenario { field: 36, k: 4 },
-        Scenario { field: 36, k: 5 },
+        // Scenario { field: 20, k: 3 },
+        // Scenario { field: 20, k: 4 },
+        // Scenario { field: 20, k: 5 },
+        // Scenario { field: 20, k: 6 },
+        // Scenario { field: 24, k: 3 },
+        // Scenario { field: 24, k: 4 },
+        // Scenario { field: 24, k: 5 },
+        // Scenario { field: 24, k: 6 },
+        // Scenario { field: 36, k: 4 },
+        // Scenario { field: 36, k: 5 },
         // Scenario { field: 36, k: 6 },
     ]);
 
@@ -108,12 +108,12 @@ fn simulate_all(scenarios: Vec<Scenario>) -> Vec<(Scenario, Stats)> {
                 // &|win_probs, k| {
                 //     dice::each_way::win_to_poly_harville_place_probs(win_probs, k, 4)
                 // }
-                // &|win_probs, k| {
-                //     dice::each_way::win_to_stacked_harville_place_probs(win_probs, k, 3)
-                // }
                 &|win_probs, k| {
-                    dice::each_way::win_to_superstacked_harville_place_probs(win_probs, k, 3)
+                    dice::each_way::win_to_stacked_harville_place_probs(win_probs, k, 3)
                 }
+                // &|win_probs, k| {
+                //     dice::each_way::win_to_superstacked_harville_place_probs(win_probs, k, 3)
+                // }
             );
             (scenario, stats)
         })

@@ -10,6 +10,16 @@ pub enum Capture<'a, W: Borrow<B>, B: ?Sized = W> {
     Borrowed(&'a B),
 }
 
+impl<'a, W: BorrowMut<B>, B> Capture<'a, W, B> {
+    #[inline]
+    pub fn into_owned(self) -> B::Owned where B: ToOwned<Owned = W> {
+        match self {
+            Capture::Owned(owned) => owned,
+            Capture::Borrowed(borrowed) => borrowed.to_owned()
+        }
+    }
+}
+
 impl<W: Borrow<B> + Default, B: ?Sized> Default for Capture<'_, W, B> {
     #[inline]
     fn default() -> Self {
@@ -50,6 +60,16 @@ impl<B: ?Sized + ToOwned> Clone for Capture<'_, B::Owned, B> {
 pub enum CaptureMut<'a, W: BorrowMut<B>, B: ?Sized = W> {
     Owned(W),
     Borrowed(&'a mut B),
+}
+
+impl<'a, W: BorrowMut<B>, B> CaptureMut<'a, W, B> {
+    #[inline]
+    pub fn into_owned(self) -> B::Owned where B: ToOwned<Owned = W> {
+        match self {
+            CaptureMut::Owned(owned) => owned,
+            CaptureMut::Borrowed(borrowed) => borrowed.to_owned()
+        }
+    }
 }
 
 impl<W: BorrowMut<B> + Default, B: ?Sized> Default for CaptureMut<'_, W, B> {

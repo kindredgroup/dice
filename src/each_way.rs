@@ -3,7 +3,7 @@ pub mod probs_sim;
 
 use crate::capture::Capture;
 use crate::dilative::DilatedProbs;
-use crate::harville::{harville_est, harville_summary, harville_summary_condensed, poly_harville_summary, stacked_harville_summary, superstacked_harville_summary};
+use crate::harville::{classic, harville_est, harville_summary_condensed, poly_harville_summary, stacked_harville_summary, superstacked_harville_summary};
 use crate::market::{Market, Overround, OverroundMethod, PriceBounds};
 use crate::matrix::Matrix;
 use crate::opt::{UnivariateDescentConfig, univariate_descent};
@@ -72,13 +72,12 @@ pub fn win_to_est_place_probs(win_probs: &[f64], k: usize) -> Vec<f64> {
 }
 
 pub fn win_to_upscaled_place_probs(win_probs: &[f64], k: usize, fit_rank_idx: usize) -> Vec<f64> {
-    let harville = harville_summary(
+    let harville = classic::summary(
         &Matrix::from(
             DilatedProbs::default()
                 .with_win_probs(Capture::Borrowed(win_probs))
                 .with_podium_places(fit_rank_idx + 1),
-        ),
-        fit_rank_idx + 1,
+        )
     );
     let harville = &harville[fit_rank_idx];
     let outcome = univariate_descent(

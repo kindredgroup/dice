@@ -33,7 +33,7 @@ pub fn pick_state_hyper(
     }
 }
 
-#[inline]
+#[inline(always)]
 pub fn count_states(cardinalities: &[usize]) -> usize {
     cardinalities
         .iter()
@@ -64,7 +64,7 @@ pub fn is_unique_linear(elements: &[usize], bitmap: &mut [bool]) -> bool {
     true
 }
 
-#[inline]
+#[inline(always)]
 pub fn count_permutations(n: usize, r: usize) -> usize {
     ((n - r + 1)..=n).product()
 }
@@ -405,24 +405,4 @@ mod tests {
         ];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
-
-    // #[test]
-    // fn test_pick_permutation_reverse_4p2() {
-    //     let outputs = generate_permutations_reverse(4, 2);
-    //     let expected_outputs = vec![
-    //         [0, 1],
-    //         [1, 0],
-    //         [2, 0],
-    //         [3, 0],
-    //         [0, 2],
-    //         [1, 2],
-    //         [2, 1],
-    //         [3, 1],
-    //         [0, 3],
-    //         [1, 3],
-    //         [2, 3],
-    //         [3, 2],
-    //     ];
-    //     assert_eq!(inner_array_to_vec(expected_outputs), outputs);
-    // }
 }
