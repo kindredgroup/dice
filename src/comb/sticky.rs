@@ -1,14 +1,14 @@
 use crate::comb::combiner::Combiner;
 use crate::comb::generator::Generator;
-use crate::comb::split_combiner::{Partition, SplitCombiner};
+use crate::comb::split_combiner::{Split, SplitCombiner};
 
 pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
-    let mut combiner = Combiner::new(n, r);
+    let mut combiner = Combiner::new(n, r); //TODO alloc
+    let mut stack = vec![0; r];  //TODO alloc
     loop {
         //println!("combination: {:?}", combiner.ordinals());
         let elements = combiner.ordinals().iter().copied().collect::<Vec<_>>(); //TODO alloc
-        let stack = vec![];  //TODO alloc
-        if !_permute(&elements, &stack, &mut f, 0) {
+        if !_permute(&elements, &mut stack, &mut f, 0) {
             break;
         }
         if !combiner.advance() {
@@ -17,21 +17,17 @@ pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
     }
 }
 
-fn _permute(elements: &[usize], stack: &[usize], f: &mut impl FnMut(&[usize]) -> bool, depth: usize) -> bool {
+fn _permute(elements: &[usize], stack: &mut [usize], f: &mut impl FnMut(&[usize]) -> bool, depth: usize) -> bool {
     if !elements.is_empty() {
         let mut splitter = SplitCombiner::new(elements.len());  //TODO alloc
         loop {
-            let Partition(head, tail) = splitter.split();
+            let Split(head, tail) = splitter.split();
             let head_ordinals = head.iter().map(|head_ordinal| elements[*head_ordinal]).collect::<Vec<_>>();  //TODO alloc
             let tail_ordinal = elements[tail];
-            println!("{}permuting split {head_ordinals:?}-{tail_ordinal}, stack: {stack:?}", "  ".repeat(depth));
-            let mut new_stack = Vec::with_capacity(stack.len() + 1);  //TODO alloc
-            for ordinal in stack {
-                new_stack.push(*ordinal);
-            }
-            new_stack.push(tail_ordinal);
+            println!("{}permuting split {head_ordinals:?}-{tail_ordinal}, stack: {:?}", "  ".repeat(depth), &stack[stack.len() - depth..]);
+            stack[stack.len() - depth - 1] = tail_ordinal;
             
-            if !_permute(&head_ordinals, &new_stack, f, depth + 1) {
+            if !_permute(&head_ordinals, stack, f, depth + 1) {
                 return false;
             }
             
@@ -42,55 +38,11 @@ fn _permute(elements: &[usize], stack: &[usize], f: &mut impl FnMut(&[usize]) ->
         true
     } else {
         println!("{} feeding stack: {stack:?}", "  ".repeat(depth));
-        let mut inv_stack = stack.to_owned();
-        inv_stack.reverse();
-        f(&inv_stack)
+        // let mut inv_stack = stack.to_owned();
+        // inv_stack.reverse();
+        f(&stack)
     }
 }
-
-// struct Splitter<'a> {
-//     all: &'a Bitmap,
-//     omitted: Option<usize>,
-// }
-// 
-// impl<'a> Splitter<'a> {
-//     #[inline]
-//     pub fn new(all: &'a Bitmap) -> Self {
-//         Self {
-//             all,
-//             omitted: Some(all.len() - 1)
-//         }
-//     }
-// }
-// 
-// impl<'a> Iterator for Splitter<'a> {
-//     type Item = Split;
-// 
-//     #[inline]
-//     fn next(&mut self) -> Option<Self::Item> {
-//         loop {
-//             match &mut self.omitted {
-//                 None => return None,
-//                 Some(omitted) => {
-//                     let curr_omitted = *omitted;
-//                     if *omitted != 0 {
-//                         *omitted -= 1;
-//                     } else {
-//                         self.omitted = None
-//                     }
-//                     if self.all[curr_omitted] {
-//                         let mut subset = self.all.clone();
-//                         subset[curr_omitted] = false;
-//                         return Some(Split(subset, curr_omitted))
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
-
-// #[derive(Debug, PartialEq, Eq)]
-// struct Split(Bitmap, usize);
 
 #[cfg(test)]
 mod tests {
