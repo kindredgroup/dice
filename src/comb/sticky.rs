@@ -1,13 +1,13 @@
-use crate::comb::bitmap::Bitmap;
 use crate::comb::combiner::Combiner;
 use crate::comb::generator::Generator;
+use crate::comb::split_combiner::{Partition, SplitCombiner};
 
 pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
     let mut combiner = Combiner::new(n, r);
     loop {
         //println!("combination: {:?}", combiner.ordinals());
-        let elements = Bitmap::from((combiner.ordinals().iter().map(|ordinal| *ordinal), n));
-        let stack = vec![];
+        let elements = combiner.ordinals().iter().copied().collect::<Vec<_>>(); //TODO alloc
+        let stack = vec![];  //TODO alloc
         if !_permute(&elements, &stack, &mut f, 0) {
             break;
         }
@@ -17,73 +17,84 @@ pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
     }
 }
 
-fn _permute(elements: &Bitmap, stack: &[usize], f: &mut impl FnMut(&[usize]) -> bool, depth: usize) -> bool {
+fn _permute(elements: &[usize], stack: &[usize], f: &mut impl FnMut(&[usize]) -> bool, depth: usize) -> bool {
     if !elements.is_empty() {
-        for Split(head, tail) in Splitter::new(&elements) {
-            println!("{}permuting split {head}-{tail}, stack: {stack:?}", "  ".repeat(depth));
-            let mut new_stack = Vec::with_capacity(stack.len() + 1);
-            new_stack.push(tail);
+        let mut splitter = SplitCombiner::new(elements.len());  //TODO alloc
+        loop {
+            let Partition(head, tail) = splitter.split();
+            let head_ordinals = head.iter().map(|head_ordinal| elements[*head_ordinal]).collect::<Vec<_>>();  //TODO alloc
+            let tail_ordinal = elements[tail];
+            println!("{}permuting split {head_ordinals:?}-{tail_ordinal}, stack: {stack:?}", "  ".repeat(depth));
+            let mut new_stack = Vec::with_capacity(stack.len() + 1);  //TODO alloc
             for ordinal in stack {
                 new_stack.push(*ordinal);
             }
-            if !_permute(&head, &new_stack, f, depth + 1) {
+            new_stack.push(tail_ordinal);
+            
+            if !_permute(&head_ordinals, &new_stack, f, depth + 1) {
                 return false;
+            }
+            
+            if !splitter.advance() {
+                break;
             }
         }
         true
     } else {
-        f(stack)
+        println!("{} feeding stack: {stack:?}", "  ".repeat(depth));
+        let mut inv_stack = stack.to_owned();
+        inv_stack.reverse();
+        f(&inv_stack)
     }
 }
 
-struct Splitter<'a> {
-    all: &'a Bitmap,
-    omitted: Option<usize>,
-}
+// struct Splitter<'a> {
+//     all: &'a Bitmap,
+//     omitted: Option<usize>,
+// }
+// 
+// impl<'a> Splitter<'a> {
+//     #[inline]
+//     pub fn new(all: &'a Bitmap) -> Self {
+//         Self {
+//             all,
+//             omitted: Some(all.len() - 1)
+//         }
+//     }
+// }
+// 
+// impl<'a> Iterator for Splitter<'a> {
+//     type Item = Split;
+// 
+//     #[inline]
+//     fn next(&mut self) -> Option<Self::Item> {
+//         loop {
+//             match &mut self.omitted {
+//                 None => return None,
+//                 Some(omitted) => {
+//                     let curr_omitted = *omitted;
+//                     if *omitted != 0 {
+//                         *omitted -= 1;
+//                     } else {
+//                         self.omitted = None
+//                     }
+//                     if self.all[curr_omitted] {
+//                         let mut subset = self.all.clone();
+//                         subset[curr_omitted] = false;
+//                         return Some(Split(subset, curr_omitted))
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
 
-impl<'a> Splitter<'a> {
-    #[inline]
-    pub fn new(all: &'a Bitmap) -> Self {
-        Self {
-            all,
-            omitted: Some(all.len() - 1)
-        }
-    }
-}
-
-impl<'a> Iterator for Splitter<'a> {
-    type Item = Split;
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            match &mut self.omitted {
-                None => return None,
-                Some(omitted) => {
-                    let curr_omitted = *omitted;
-                    if *omitted != 0 {
-                        *omitted -= 1;
-                    } else {
-                        self.omitted = None
-                    }
-                    if self.all[curr_omitted] {
-                        let mut subset = self.all.clone();
-                        subset[curr_omitted] = false;
-                        return Some(Split(subset, curr_omitted))
-                    }
-                }
-            }
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-struct Split(Bitmap, usize);
+// #[derive(Debug, PartialEq, Eq)]
+// struct Split(Bitmap, usize);
 
 #[cfg(test)]
 mod tests {
-    use crate::comb::bitmap::Bitmap;
-    use crate::comb::sticky::{permute, Split, Splitter};
+    use crate::comb::sticky::{permute};
     use crate::comb::tests::inner_array_to_vec;
 
     fn iterate_sticky(n: usize, r: usize) -> Vec<Vec<usize>> {
@@ -238,18 +249,18 @@ mod tests {
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
 
-    #[test]
-    fn splitter() {
-        const LEN: usize = 16;
-        let all = Bitmap::from(([0, 5, 10, 15], LEN));
-        let splits = Splitter::new(&all).collect::<Vec<_>>();
-        println!("splits: {splits:?}");
-        let expected = vec![
-            Split(Bitmap::from(([0, 5, 10], LEN)), 15), 
-            Split(Bitmap::from(([0, 5, 15], LEN)), 10),
-            Split(Bitmap::from(([0, 10, 15], LEN)), 5),
-            Split(Bitmap::from(([5, 10, 15], LEN)), 0),
-        ];
-        assert_eq!(expected, splits);
-    }
+    // #[test]
+    // fn splitter() {
+    //     const LEN: usize = 16;
+    //     let all = Bitmap::from(([0, 5, 10, 15], LEN));
+    //     let splits = Splitter::new(&all).collect::<Vec<_>>();
+    //     println!("splits: {splits:?}");
+    //     let expected = vec![
+    //         Split(Bitmap::from(([0, 5, 10], LEN)), 15), 
+    //         Split(Bitmap::from(([0, 5, 15], LEN)), 10),
+    //         Split(Bitmap::from(([0, 10, 15], LEN)), 5),
+    //         Split(Bitmap::from(([5, 10, 15], LEN)), 0),
+    //     ];
+    //     assert_eq!(expected, splits);
+    // }
 }

@@ -7,7 +7,7 @@ pub struct SplitCombiner<'a> {
 }
 
 #[derive(Debug)]
-pub struct Split<'a>(pub &'a [usize], pub usize);
+pub struct Partition<'a>(pub &'a [usize], pub usize);
 
 impl<'a> SplitCombiner<'a> {
     #[inline]
@@ -34,8 +34,8 @@ impl<'a> SplitCombiner<'a> {
     }
     
     #[inline]
-    pub fn split(&self) -> Split {
-        Split(&self.ordinals, self.omitted)
+    pub fn split(&self) -> Partition {
+        Partition(&self.ordinals, self.omitted)
     }
 
     #[inline]
@@ -58,12 +58,12 @@ impl<'a> SplitCombiner<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::comb::split_combiner::{Split, SplitCombiner};
+    use crate::comb::split_combiner::{Partition, SplitCombiner};
 
     fn collect_splits(mut splitter: SplitCombiner) -> Vec<(Vec<usize>, usize)> {
         let mut outputs = vec![];
         loop {
-            let Split(ordinals, omitted) = splitter.split();
+            let Partition(ordinals, omitted) = splitter.split();
             outputs.push((ordinals.to_owned(), omitted));
             if !splitter.advance() {
                 break;
