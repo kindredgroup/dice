@@ -166,7 +166,7 @@ pub fn win_to_place_stick_samp(win_probs: &[f64], k: usize, degree: usize) -> Ve
             .with_win_probs(Capture::Borrowed(win_probs))
             .with_podium_places(k),
     );
-    let rank_probs = sticky_samp::summary(&win_probs, k, degree);
+    let rank_probs = sticky_samp::summary(&win_probs, degree);
     let mut place_probs = (0..rank_probs.cols())
         .map(|col| {
             (0..rank_probs.rows())

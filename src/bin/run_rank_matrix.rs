@@ -33,7 +33,7 @@ fn main() {
         log::info!("Win probs:\n{}", Markdown::default().render(&table));
     }
 
-    let rank_probs = mass_samp(&win_probs, k);
+    let rank_probs = sticky_samp(&win_probs, k);
     {
         let table = Table::default()
             .with_row(Row::new(
@@ -129,5 +129,5 @@ pub fn sticky_samp(win_probs: &[f64], k: usize) -> Matrix<f64> {
             .with_win_probs(Capture::Borrowed(win_probs))
             .with_podium_places(k),
     );
-    sticky_samp::summary(&dilated_probs, k, DEGREE)
+    sticky_samp::summary(&dilated_probs, DEGREE)
 }
