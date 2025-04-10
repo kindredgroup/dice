@@ -5,10 +5,15 @@ use crate::comb::split_combiner::{Split, SplitCombiner};
 pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
     let mut combiner = Combiner::new(n, r); //TODO alloc
     let mut stack = vec![0; r];  //TODO alloc
+    let mut elements_stack = vec![0; (r + 1) * r / 2];
     loop {
-        //println!("combination: {:?}", combiner.ordinals());
-        let elements = combiner.ordinals().iter().copied().collect::<Vec<_>>(); //TODO alloc
-        if !_permute(&elements, &mut stack, &mut f, 0) {
+        println!("combination: {:?}, {elements_stack:?}", combiner.ordinals(), );
+        for (index, ordinal) in combiner.ordinals().iter().enumerate() {
+            elements_stack[index] = *ordinal;
+        }
+        // let elements = combiner.ordinals().iter().copied().collect_into()
+
+        if !_permute(&mut elements_stack, 0, r, &mut stack, &mut f, 0) {
             break;
         }
         if !combiner.advance() {
@@ -17,29 +22,40 @@ pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
     }
 }
 
-fn _permute(elements: &[usize], stack: &mut [usize], f: &mut impl FnMut(&[usize]) -> bool, depth: usize) -> bool {
-    if !elements.is_empty() {
-        let mut splitter = SplitCombiner::new(elements.len());  //TODO alloc
+fn _permute(elements_stack: &mut [usize], elements_start: usize, elements_len: usize, stack: &mut [usize], f: &mut impl FnMut(&[usize]) -> bool, depth: usize) -> bool {
+    if elements_len != 0 {
+        let mut splitter = SplitCombiner::new(elements_len);  //TODO alloc
+
+        // demarcation pointers for the next (child) frame of within elements_stack
+        let (child_elements_start, child_elements_len) = (elements_start + elements_len, elements_len - 1);
         loop {
+            // the child combination to recurse into
             let Split(head, tail) = splitter.split();
-            let head_ordinals = head.iter().map(|head_ordinal| elements[*head_ordinal]).collect::<Vec<_>>();  //TODO alloc
-            let tail_ordinal = elements[tail];
-            println!("{}permuting split {head_ordinals:?}-{tail_ordinal}, stack: {:?}", "  ".repeat(depth), &stack[stack.len() - depth..]);
+
+            // SAFETY: by the nonoverlapping index ranges elements_start..elements_start+elements_len
+            // and child_elements_start..child_elements_start+child_elements_len.
+            let elements_stack_shadow: *const _ = elements_stack;
+            let elements_stack_shadow = unsafe { &*elements_stack_shadow };
+
+            // translate the ordinals produced by the splitter into the actual ordinals in the context of the parent combination
+            for (index, head_ordinal) in  head.iter().map(|head_ordinal| elements_stack_shadow[elements_start + *head_ordinal]).enumerate() {
+                elements_stack[child_elements_start + index] = head_ordinal;
+            }
+            let tail_ordinal = elements_stack[elements_start + tail];
+            println!("{}{depth} — elements: {:?}, permuting split {:?}-{tail_ordinal}, stack: {:?}", "  ".repeat(depth), &elements_stack[elements_start..elements_start + elements_len], &elements_stack[child_elements_start..child_elements_start + child_elements_len], &stack[stack.len() - depth..]);
             stack[stack.len() - depth - 1] = tail_ordinal;
-            
-            if !_permute(&head_ordinals, stack, f, depth + 1) {
+
+            if !_permute(elements_stack, child_elements_start, child_elements_len, stack, f, depth + 1) {
                 return false;
             }
-            
+
             if !splitter.advance() {
                 break;
             }
         }
         true
     } else {
-        println!("{} feeding stack: {stack:?}", "  ".repeat(depth));
-        // let mut inv_stack = stack.to_owned();
-        // inv_stack.reverse();
+        println!("{} completed stack: {stack:?}", "  ".repeat(depth));
         f(&stack)
     }
 }
@@ -208,7 +224,7 @@ mod tests {
     //     let splits = Splitter::new(&all).collect::<Vec<_>>();
     //     println!("splits: {splits:?}");
     //     let expected = vec![
-    //         Split(Bitmap::from(([0, 5, 10], LEN)), 15), 
+    //         Split(Bitmap::from(([0, 5, 10], LEN)), 15),
     //         Split(Bitmap::from(([0, 5, 15], LEN)), 10),
     //         Split(Bitmap::from(([0, 10, 15], LEN)), 5),
     //         Split(Bitmap::from(([5, 10, 15], LEN)), 0),
