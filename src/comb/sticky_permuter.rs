@@ -151,7 +151,7 @@ fn _permute_no_alloc(
 
 #[cfg(test)]
 mod tests {
-    use crate::comb::sticky::permute;
+    use crate::comb::sticky_permuter::permute;
     use crate::comb::tests::inner_array_to_vec;
 
     fn iterate_sticky(n: usize, r: usize) -> Vec<Vec<usize>> {

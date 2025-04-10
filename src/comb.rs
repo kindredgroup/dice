@@ -6,7 +6,7 @@ pub mod enumerator;
 pub mod generator;
 pub mod permuter;
 pub mod split_combiner;
-pub mod sticky;
+pub mod sticky_permuter;
 
 #[inline]
 pub fn pick_state(cardinalities: &[usize], state_index: usize, ordinals: &mut [usize]) {

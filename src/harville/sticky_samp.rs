@@ -1,4 +1,4 @@
-use crate::comb::{count_permutations, sticky};
+use crate::comb::{count_permutations, sticky_permuter};
 use crate::harville::harville;
 use crate::matrix::Matrix;
 use crate::probs::SliceExt;
@@ -82,7 +82,7 @@ pub fn summary_no_alloc(
             log::trace!("runner: {runner}: rank: {rank}, total_perms: {total_permutations}, quota: {quota}, sans_self: {sans_self:?}");
 
             let mut permutation = 0;
-            sticky::permute(runners - 1, rank, |ordinals| {
+            sticky_permuter::permute(runners - 1, rank, |ordinals| {
                 for (index, ordinal) in &mut ordinals.iter().enumerate() {
                     podium[index] = *sans_self[*ordinal];
                 }
