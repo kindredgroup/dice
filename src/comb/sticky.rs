@@ -1,19 +1,77 @@
+use crate::capture::CaptureMut;
 use crate::comb::combiner::Combiner;
 use crate::comb::generator::Generator;
 use crate::comb::split_combiner::{Split, SplitCombiner};
 
-pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
-    let mut combiner = Combiner::new(n, r); //TODO alloc
-    let mut stack = vec![0; r];  //TODO alloc
-    let mut elements_stack = vec![0; (r + 1) * r / 2];
-    loop {
-        println!("combination: {:?}, {elements_stack:?}", combiner.ordinals(), );
-        for (index, ordinal) in combiner.ordinals().iter().enumerate() {
-            elements_stack[index] = *ordinal;
-        }
-        // let elements = combiner.ordinals().iter().copied().collect_into()
+#[derive(Debug)]
+pub struct Alloc<'a> {
+    pub combiner_ordinals: CaptureMut<'a, Vec<usize>, [usize]>,
+    pub whole_ordinals_stack: CaptureMut<'a, Vec<usize>, [usize]>,
+    pub split_ordinals_stack: CaptureMut<'a, Vec<usize>, [usize]>,
+    pub ordinals: CaptureMut<'a, Vec<usize>, [usize]>,
+}
 
-        if !_permute(&mut elements_stack, 0, r, &mut stack, &mut f, 0) {
+impl Alloc<'_> {
+    #[inline]
+    pub fn new(r: usize) -> Self {
+        let expected_stack_len = (r + 1) * r / 2;
+        Self {
+            combiner_ordinals: vec![0; r].into(),
+            whole_ordinals_stack: vec![0; expected_stack_len].into(),
+            split_ordinals_stack: vec![0; expected_stack_len].into(),
+            ordinals: vec![0; r].into(),
+        }
+    }
+}
+
+#[inline]
+pub fn permute(n: usize, r: usize, f: impl FnMut(&[usize]) -> bool) {
+    permute_no_alloc(n, r, Alloc::new(r), f)
+}
+
+#[inline]
+pub fn permute_no_alloc(n: usize, r: usize, alloc: Alloc, mut f: impl FnMut(&[usize]) -> bool) {
+    let Alloc {
+        combiner_ordinals,
+        mut whole_ordinals_stack,
+        mut split_ordinals_stack,
+        mut ordinals,
+    } = alloc;
+
+    let expected_stack_len = (r + 1) * r / 2;
+    debug_assert_eq!(
+        combiner_ordinals.len(),
+        r,
+        "combiner ordinals length must equal r"
+    );
+    debug_assert_eq!(
+        whole_ordinals_stack.len(),
+        expected_stack_len,
+        "whole ordinals stack length must equal r(r+1)/2"
+    );
+    debug_assert_eq!(
+        split_ordinals_stack.len(),
+        expected_stack_len,
+        "split ordinals stack length must equal r(r+1)/2"
+    );
+    debug_assert_eq!(ordinals.len(), r, "ordinals length must equal r");
+
+    let mut combiner = Combiner::new_no_alloc(n, combiner_ordinals);
+    loop {
+        //println!("combination: {:?}", combiner.ordinals());
+        for (index, ordinal) in combiner.ordinals().iter().enumerate() {
+            whole_ordinals_stack[index] = *ordinal;
+        }
+
+        if !_permute_no_alloc(
+            &mut whole_ordinals_stack,
+            &mut split_ordinals_stack,
+            0,
+            r,
+            &mut ordinals,
+            &mut f,
+            0,
+        ) {
             break;
         }
         if !combiner.advance() {
@@ -22,30 +80,61 @@ pub fn permute(n: usize, r: usize, mut f: impl FnMut(&[usize]) -> bool) {
     }
 }
 
-fn _permute(elements_stack: &mut [usize], elements_start: usize, elements_len: usize, stack: &mut [usize], f: &mut impl FnMut(&[usize]) -> bool, depth: usize) -> bool {
-    if elements_len != 0 {
-        let mut splitter = SplitCombiner::new(elements_len);  //TODO alloc
+#[inline]
+fn _permute_no_alloc(
+    whole_ordinals_stack: &mut [usize],
+    split_ordinals_stack: &mut [usize],
+    stack_start: usize,
+    stack_len: usize,
+    ordinals: &mut [usize],
+    f: &mut impl FnMut(&[usize]) -> bool,
+    depth: usize,
+) -> bool {
+    if stack_len != 0 {
+        // SAFETY: by the nonoverlapping index ranges stack_start..stack_start+stack_len
+        // and child_stack_start..child_stack_start+child_stack_len.
+        let whole_ordinals_stack_shadow: *const _ = whole_ordinals_stack;
+        let whole_ordinals_stack_shadow = unsafe { &*whole_ordinals_stack_shadow };
+        let split_ordinals_stack_shadow: *mut _ = split_ordinals_stack;
+        let split_ordinals_stack_shadow = unsafe { &mut *split_ordinals_stack_shadow };
 
-        // demarcation pointers for the next (child) frame of within elements_stack
-        let (child_elements_start, child_elements_len) = (elements_start + elements_len, elements_len - 1);
+        let mut splitter = SplitCombiner::new_no_alloc(CaptureMut::Borrowed(
+            &mut split_ordinals_stack_shadow[stack_start..stack_start + stack_len - 1],
+        ));
+
+        // demarcation pointers for the next (child) frame of within whole_ordinals_stack
+        let (child_stack_start, child_stack_len) = (stack_start + stack_len, stack_len - 1);
         loop {
-            // the child combination to recurse into
+            // the next child combination to recurse into
             let Split(head, tail) = splitter.split();
 
-            // SAFETY: by the nonoverlapping index ranges elements_start..elements_start+elements_len
-            // and child_elements_start..child_elements_start+child_elements_len.
-            let elements_stack_shadow: *const _ = elements_stack;
-            let elements_stack_shadow = unsafe { &*elements_stack_shadow };
-
-            // translate the ordinals produced by the splitter into the actual ordinals in the context of the parent combination
-            for (index, head_ordinal) in  head.iter().map(|head_ordinal| elements_stack_shadow[elements_start + *head_ordinal]).enumerate() {
-                elements_stack[child_elements_start + index] = head_ordinal;
+            // resolve the ordinals produced by the splitter into the actual ordinals in the context of the parent combination
+            for (index, head_ordinal) in head
+                .iter()
+                .map(|head_ordinal| whole_ordinals_stack_shadow[stack_start + *head_ordinal])
+                .enumerate()
+            {
+                whole_ordinals_stack[child_stack_start + index] = head_ordinal;
             }
-            let tail_ordinal = elements_stack[elements_start + tail];
-            println!("{}{depth} — elements: {:?}, permuting split {:?}-{tail_ordinal}, stack: {:?}", "  ".repeat(depth), &elements_stack[elements_start..elements_start + elements_len], &elements_stack[child_elements_start..child_elements_start + child_elements_len], &stack[stack.len() - depth..]);
-            stack[stack.len() - depth - 1] = tail_ordinal;
+            let tail_ordinal = whole_ordinals_stack[stack_start + tail];
+            // println!(
+            //     "{}{depth} — elements: {:?}, permuting split {:?}-{tail_ordinal}, ordinals: {:?}, {stack_start}|{stack_len}",
+            //     "  ".repeat(depth),
+            //     &whole_ordinals_stack[stack_start..stack_start + stack_len],
+            //     &whole_ordinals_stack[child_stack_start..child_stack_start + child_stack_len],
+            //     &ordinals[ordinals.len() - depth..]
+            // );
+            ordinals[ordinals.len() - depth - 1] = tail_ordinal;
 
-            if !_permute(elements_stack, child_elements_start, child_elements_len, stack, f, depth + 1) {
+            if !_permute_no_alloc(
+                whole_ordinals_stack,
+                split_ordinals_stack,
+                child_stack_start,
+                child_stack_len,
+                ordinals,
+                f,
+                depth + 1,
+            ) {
                 return false;
             }
 
@@ -55,14 +144,14 @@ fn _permute(elements_stack: &mut [usize], elements_start: usize, elements_len: u
         }
         true
     } else {
-        println!("{} completed stack: {stack:?}", "  ".repeat(depth));
-        f(&stack)
+        //println!("{} completed ordinals: {ordinals:?}", "  ".repeat(depth));
+        f(&ordinals)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::comb::sticky::{permute};
+    use crate::comb::sticky::permute;
     use crate::comb::tests::inner_array_to_vec;
 
     fn iterate_sticky(n: usize, r: usize) -> Vec<Vec<usize>> {
@@ -78,36 +167,28 @@ mod tests {
     #[test]
     fn permute_0p0() {
         let outputs = iterate_sticky(0, 0);
-        let expected_outputs = vec![
-            []
-        ];
+        let expected_outputs = vec![[]];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
 
     #[test]
     fn permute_1p0() {
         let outputs = iterate_sticky(1, 0);
-        let expected_outputs = vec![
-            []
-        ];
+        let expected_outputs = vec![[]];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
 
     #[test]
     fn permute_1p1() {
         let outputs = iterate_sticky(1, 1);
-        let expected_outputs = vec![
-            [0]
-        ];
+        let expected_outputs = vec![[0]];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
 
     #[test]
     fn permute_4p0() {
         let outputs = iterate_sticky(4, 0);
-        let expected_outputs = vec![
-            []
-        ];
+        let expected_outputs = vec![[]];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
 
@@ -126,7 +207,7 @@ mod tests {
             [1, 3],
             [3, 1],
             [2, 3],
-            [3, 2]
+            [3, 2],
         ];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
@@ -158,7 +239,7 @@ mod tests {
             [1, 3, 2],
             [3, 1, 2],
             [2, 3, 1],
-            [3, 2, 1]
+            [3, 2, 1],
         ];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
@@ -190,7 +271,7 @@ mod tests {
             [1, 3, 2, 0],
             [3, 1, 2, 0],
             [2, 3, 1, 0],
-            [3, 2, 1, 0]
+            [3, 2, 1, 0],
         ];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
@@ -206,29 +287,7 @@ mod tests {
             permutation += 1;
             permutation < CAP
         });
-        let expected_outputs = vec![
-            [0, 1],
-            [1, 0],
-            [0, 2],
-            [2, 0],
-            [0, 3],
-            [3, 0],
-        ];
+        let expected_outputs = vec![[0, 1], [1, 0], [0, 2], [2, 0], [0, 3], [3, 0]];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }
-
-    // #[test]
-    // fn splitter() {
-    //     const LEN: usize = 16;
-    //     let all = Bitmap::from(([0, 5, 10, 15], LEN));
-    //     let splits = Splitter::new(&all).collect::<Vec<_>>();
-    //     println!("splits: {splits:?}");
-    //     let expected = vec![
-    //         Split(Bitmap::from(([0, 5, 10], LEN)), 15),
-    //         Split(Bitmap::from(([0, 5, 15], LEN)), 10),
-    //         Split(Bitmap::from(([0, 10, 15], LEN)), 5),
-    //         Split(Bitmap::from(([5, 10, 15], LEN)), 0),
-    //     ];
-    //     assert_eq!(expected, splits);
-    // }
 }
