@@ -20,7 +20,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         );
         let mut alloc = rand_samp::Alloc::new(n, k);
         
-        c.bench_function(&format!("cri_poly_harville_{n}x{k}_d{degree}"), |b| {
+        c.bench_function(&format!("cri_harville_rand_samp{n}x{k}_d{degree}"), |b| {
             b.iter(|| {
                 rand_samp::summary_no_alloc(&dilated_probs, degree, &mut alloc);
             });

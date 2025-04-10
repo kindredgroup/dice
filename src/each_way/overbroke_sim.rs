@@ -1,5 +1,5 @@
 use std::time::Instant;
-use crate::each_way::{win_to_place_baor, win_to_place_harville, win_to_place_upscaled, win_to_place_or};
+use crate::place::{win_to_place_baor, win_to_place_harville, win_to_place_upscaled, win_to_place_or};
 use crate::probs::SliceExt;
 use tinyrand::Rand;
 use crate::random;

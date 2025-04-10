@@ -99,21 +99,21 @@ fn simulate_all(scenarios: Vec<Scenario>) -> Vec<(Scenario, Stats)> {
                 &scenario,
                 TRIALS,
                 &mut rand,
-                &dice::each_way::win_to_place_harville,
-                // &dice::each_way::win_to_baor_redist_place_probs,
-                // &dice::each_way::win_to_est_place_probs,
+                &dice::place::win_to_place_harville,
+                // &dice::place::win_to_baor_redist_place_probs,
+                // &dice::place::win_to_est_place_probs,
                 // &|win_probs, k| {
-                //     dice::each_way::win_to_upscaled_place_probs(win_probs, k, std::cmp::min(k - 2, 2))
+                //     dice::place::win_to_upscaled_place_probs(win_probs, k, std::cmp::min(k - 2, 2))
                 // }
                 // &|win_probs, k| {
-                //     dice::each_way::win_to_poly_harville_place_probs(win_probs, k, 4)
+                //     dice::place::win_to_poly_harville_place_probs(win_probs, k, 4)
+                // }
+                // &|win_probs, k| {
+                //     dice::place::win_to_place_mass_samp(win_probs, k, 3)
                 // }
                 &|win_probs, k| {
-                    dice::each_way::win_to_place_mass_samp(win_probs, k, 3)
+                    dice::place::win_to_place_sticky_samp(win_probs, k, 3)
                 }
-                // &|win_probs, k| {
-                //     dice::each_way::win_to_superstacked_harville_place_probs(win_probs, k, 3)
-                // }
             );
             (scenario, stats)
         })

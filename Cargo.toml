@@ -15,9 +15,13 @@ statrs = "0.18.0"
 criterion = { version = "0.5.1", features = ["html_reports"] }
 
 [[bench]]
-name = "cri_harville"
+name = "cri_harville_classic"
 harness = false
 
 [[bench]]
-name = "cri_poly_harville"
+name = "cri_harville_mass_samp"
+harness = false
+
+[[bench]]
+name = "cri_harville_rand_samp"
 harness = false

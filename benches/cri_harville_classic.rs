@@ -18,7 +18,7 @@ fn criterion_benchmark(c: &mut Criterion) {
                 .with_podium_places(k),
         );
         let mut alloc = classic::Alloc::new(n, k);
-        c.bench_function(&format!("cri_harville_{n}x{k}"), |b| {
+        c.bench_function(&format!("cri_harville_classic_{n}x{k}"), |b| {
             b.iter(|| {
                 classic::summary_no_alloc(&dilated_probs, &mut alloc);
             });
