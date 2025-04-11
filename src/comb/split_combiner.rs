@@ -1,3 +1,11 @@
+//! An implementation of a combiner for the special case of <sup>n</sup>C<sub>n-1</sub>. It is
+//! more efficient than the general-case <sup>n</sup>C<sub>r</sub> 
+//! [`Combiner`](super::combiner::Combiner) implementation. 
+//! 
+//! For each yielded combination, the split-combiner also discloses the ordinal that was omitted 
+//! from the combination. For example, in a <sup>4</sup>C<sub>3</sub> traversal, the first
+//! combination is `Split([0, 1, 2], 3)`, succeeded by `Split([0, 1, 3], 2)`.
+
 use crate::capture::CaptureMut;
 
 #[derive(Debug)]
