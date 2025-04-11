@@ -1,3 +1,10 @@
+//! A streaming permuter that prioritises permutations with the lowest ordinals
+//! in the most significant positions.
+//!
+//! For example, in a <sup>4</sup>P<sub>4</sub> traversal, the initial permutation 
+//! `[0, 1, 2, 3]` will be succeeded by `[0, 1, 3, 2]` and `[0, 2, 1, 3]`, keeping 
+//! the lowest ordinals anchored for as long as possible.
+
 use crate::capture::CaptureMut;
 use crate::comb::generator::Generator;
 

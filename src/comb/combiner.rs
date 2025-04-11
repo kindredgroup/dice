@@ -1,3 +1,9 @@
+//! A streaming combiner that prioritises combinations with the lowest ordinals.
+//!
+//! For example, in a <sup>4</sup>C<sub>3</sub> traversal, the initial permutation 
+//! `[0, 1, 2]` will be succeeded by `[0, 1, 3]` and `[0, 2, 3]`, yielding the
+//! lowest ordinals earlier.
+
 use crate::capture::CaptureMut;
 use crate::comb::generator::Generator;
 
@@ -150,6 +156,18 @@ mod tests {
         let outputs = iterate_generator(Combiner::new(3, 3));
         let expected_outputs = vec![
             [0, 1, 2],
+        ];
+        assert_eq!(inner_array_to_vec(expected_outputs), outputs);
+    }
+
+    #[test]
+    fn combiner_4c3() {
+        let outputs = iterate_generator(Combiner::new(4, 3));
+        let expected_outputs = vec![
+            [0, 1, 2],
+            [0, 1, 3],
+            [0, 2, 3],
+            [1, 2, 3],
         ];
         assert_eq!(inner_array_to_vec(expected_outputs), outputs);
     }

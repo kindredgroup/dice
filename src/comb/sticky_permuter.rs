@@ -1,3 +1,13 @@
+//! A sticky, recursive permuter that prioritises permutations with the highest ordinals
+//! in the least significant positions.
+//! 
+//! For example, in a <sup>4</sup>P<sub>4</sub> traversal, the initial permutation 
+//! `[0, 1, 2, 3]` will be succeeded by `[1, 0, 2, 3]` and `[0, 2, 1, 3]`, keeping the
+//! highest ordinals anchored for as long as possible.
+//! 
+//! This traversal strategy inhibits the admission of higher ordinals into the most significant 
+//! positions for as long as possible.
+
 use crate::capture::CaptureMut;
 use crate::comb::combiner::Combiner;
 use crate::comb::generator::Generator;
@@ -14,12 +24,42 @@ pub struct Alloc<'a> {
 impl Alloc<'_> {
     #[inline]
     pub fn new(r: usize) -> Self {
-        let expected_stack_len = (r + 1) * r / 2;
+        let stack_len = Self::stack_len(r);
         Self {
             combiner_ordinals: vec![0; r].into(),
-            whole_ordinals_stack: vec![0; expected_stack_len].into(),
-            split_ordinals_stack: vec![0; expected_stack_len].into(),
+            whole_ordinals_stack: vec![0; stack_len].into(),
+            split_ordinals_stack: vec![0; stack_len].into(),
             ordinals: vec![0; r].into(),
+        }
+    }
+    
+    #[inline]
+    pub fn stack_len(r: usize) -> usize {
+        (r + 1) * r / 2
+    }
+
+    /// Takes sub-slices of the constituents to suit the needs of permuting
+    /// over a smaller `r` than what was specified in the initial allocation,
+    /// returning a borrowed projection of [`Self`].
+    /// 
+    /// This is used to avoid repeat allocations when permuting over varying
+    /// values of `r`. Instead of allocating each time, allocate once
+    /// for the largest expected value of `r` and later borrow slices for
+    /// smaller `r` values.
+    #[inline]
+    pub fn shrink<'a: 'b, 'b>(&'a mut self, smaller_r: usize) -> Alloc<'b> {
+        let stack_len = Self::stack_len(smaller_r);
+        Alloc {
+            combiner_ordinals: CaptureMut::Borrowed(
+                &mut self.combiner_ordinals[..smaller_r],
+            ),
+            whole_ordinals_stack: CaptureMut::Borrowed(
+                &mut self.whole_ordinals_stack[..stack_len],
+            ),
+            split_ordinals_stack: CaptureMut::Borrowed(
+                &mut self.split_ordinals_stack[..stack_len],
+            ),
+            ordinals: CaptureMut::Borrowed(&mut self.ordinals[..smaller_r]),
         }
     }
 }
@@ -38,7 +78,7 @@ pub fn permute_no_alloc(n: usize, r: usize, alloc: Alloc, mut f: impl FnMut(&[us
         mut ordinals,
     } = alloc;
 
-    let expected_stack_len = (r + 1) * r / 2;
+    let expected_stack_len = Alloc::stack_len(r);
     debug_assert_eq!(
         combiner_ordinals.len(),
         r,

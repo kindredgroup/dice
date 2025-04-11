@@ -103,19 +103,9 @@ pub fn summary_no_alloc(probs: &Matrix<f64>, degree: usize, alloc: &mut Alloc) {
                 "runner: {runner}: rank: {rank}, total_perms: {total_permutations}, quota: {quota}, sans_self_runners: {sans_self_runners:?}"
             );
 
-            // take slices of sticky_alloc to fit the needs of permuting over all outcomes for the current rank
-            let sticky_alloc_slices = sticky_permuter::Alloc {
-                combiner_ordinals: CaptureMut::Borrowed(
-                    &mut sticky_alloc.combiner_ordinals[..rank],
-                ),
-                whole_ordinals_stack: CaptureMut::Borrowed(
-                    &mut sticky_alloc.whole_ordinals_stack[..rank * (rank + 1) / 2],
-                ),
-                split_ordinals_stack: CaptureMut::Borrowed(
-                    &mut sticky_alloc.split_ordinals_stack[..rank * (rank + 1) / 2],
-                ),
-                ordinals: CaptureMut::Borrowed(&mut sticky_alloc.ordinals[..rank]),
-            };
+            // take sub-slices of the constituents of sticky_alloc to fit the needs of permuting
+            // over all outcomes for the current rank
+            let sticky_alloc_slices = sticky_alloc.shrink(rank);
             let mut permutation = 0;
             sticky_permuter::permute_no_alloc(runners - 1, rank, sticky_alloc_slices, |ordinals| {
                 for (index, ordinal) in &mut ordinals.iter().enumerate() {
