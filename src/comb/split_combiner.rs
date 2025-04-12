@@ -6,17 +6,36 @@
 //! from the combination. For example, in a <sup>4</sup>C<sub>3</sub> traversal, the first
 //! combination is `Split([0, 1, 2], 3)`, succeeded by `Split([0, 1, 3], 2)`.
 
-use std::ops::Deref;
 use crate::capture::CaptureMut;
+use crate::comb::generator::Generator;
+use std::ops::Deref;
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct Split<'a>(pub &'a [usize], pub usize);
+
+// impl<'a> ToOwned for Split<'a> {
+//     type Owned = OwnedSplit;
+// 
+//     fn to_owned(&self) -> Self::Owned {
+//         OwnedSplit(self.0.to_owned(), self.1)
+//     }
+// }
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct OwnedSplit(pub Vec<usize>, pub usize);
+
+// impl<'a> Borrow<Split<'a>> for OwnedSplit {
+//     fn borrow(&self) -> &Split<'a> {
+//         let split = Split(&self.0, self.1);
+//         &split
+//     }
+// }
 
 #[derive(Debug)]
 pub struct SplitCombiner<'a> {
     ordinals: CaptureMut<'a, Vec<usize>, [usize]>,
     borrowed: Split<'a>,
 }
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct Split<'a>(pub &'a [usize], pub usize);
 
 impl<'a> SplitCombiner<'a> {
     #[inline]
@@ -49,14 +68,18 @@ impl<'a> SplitCombiner<'a> {
             borrowed: Split(ordinals_borrow, ordinals_len),
         }
     }
-    
+}
+
+impl<'a> Generator for SplitCombiner<'a> {
+    type Item = Split<'a>;
+
     #[inline]
-    pub fn split(&self) -> &Split {
+    fn read(&self) -> &Self::Item {
         &self.borrowed
     }
 
     #[inline]
-    pub fn advance(&mut self) -> bool {
+    fn advance(&mut self) -> bool {
         if self.borrowed.1 != 0 {
             self.borrowed.1 -= 1;
             let mut index = 0;
@@ -76,12 +99,13 @@ impl<'a> SplitCombiner<'a> {
 #[cfg(test)]
 mod tests {
     use crate::capture::CaptureMut;
+    use crate::comb::generator::Generator;
     use crate::comb::split_combiner::{Split, SplitCombiner};
 
     fn collect_splits(mut splitter: SplitCombiner) -> Vec<(Vec<usize>, usize)> {
         let mut outputs = vec![];
         loop {
-            let Split(ordinals, omitted) = splitter.split();
+            let Split(ordinals, omitted) = splitter.read();
             outputs.push((ordinals.to_owned().to_owned(), *omitted));
             if !splitter.advance() {
                 break;
@@ -117,22 +141,22 @@ mod tests {
     fn safety_move_owned() {
         let mut combiners: [Option<SplitCombiner>; 2] = [const { None }; 2];
         combiners[0] = Some(SplitCombiner::new(4));
-        assert_eq!(&Split(&[0, 1, 2], 3), combiners[0].as_ref().unwrap().split());
+        assert_eq!(&Split(&[0, 1, 2], 3), combiners[0].as_ref().unwrap().read());
         
         combiners[1] = combiners[0].take();
-        assert_eq!(&Split(&[0, 1, 2], 3), combiners[1].as_ref().unwrap().split());
+        assert_eq!(&Split(&[0, 1, 2], 3), combiners[1].as_ref().unwrap().read());
         
         assert!(combiners[1].as_mut().unwrap().advance());
-        assert_eq!(&Split(&[0, 1, 3], 2), combiners[1].as_ref().unwrap().split());
+        assert_eq!(&Split(&[0, 1, 3], 2), combiners[1].as_ref().unwrap().read());
 
         assert!(combiners[1].as_mut().unwrap().advance());
-        assert_eq!(&Split(&[0, 2, 3], 1), combiners[1].as_ref().unwrap().split());
+        assert_eq!(&Split(&[0, 2, 3], 1), combiners[1].as_ref().unwrap().read());
 
         combiners[0] = combiners[1].take();
-        assert_eq!(&Split(&[0, 2, 3], 1), combiners[0].as_ref().unwrap().split());
+        assert_eq!(&Split(&[0, 2, 3], 1), combiners[0].as_ref().unwrap().read());
 
         assert!(combiners[0].as_mut().unwrap().advance());
-        assert_eq!(&Split(&[1, 2, 3], 0), combiners[0].as_ref().unwrap().split());
+        assert_eq!(&Split(&[1, 2, 3], 0), combiners[0].as_ref().unwrap().read());
         
         assert!(!combiners[0].as_mut().unwrap().advance());
     }
@@ -143,22 +167,22 @@ mod tests {
         
         let mut ordinals: Vec<usize> = vec![0; 3];
         combiners[0] = Some(SplitCombiner::new_no_alloc(CaptureMut::Borrowed(&mut ordinals)));
-        assert_eq!(&Split(&[0, 1, 2], 3), combiners[0].as_ref().unwrap().split());
+        assert_eq!(&Split(&[0, 1, 2], 3), combiners[0].as_ref().unwrap().read());
 
         combiners[1] = combiners[0].take();
-        assert_eq!(&Split(&[0, 1, 2], 3), combiners[1].as_ref().unwrap().split());
+        assert_eq!(&Split(&[0, 1, 2], 3), combiners[1].as_ref().unwrap().read());
 
         assert!(combiners[1].as_mut().unwrap().advance());
-        assert_eq!(&Split(&[0, 1, 3], 2), combiners[1].as_ref().unwrap().split());
+        assert_eq!(&Split(&[0, 1, 3], 2), combiners[1].as_ref().unwrap().read());
 
         assert!(combiners[1].as_mut().unwrap().advance());
-        assert_eq!(&Split(&[0, 2, 3], 1), combiners[1].as_ref().unwrap().split());
+        assert_eq!(&Split(&[0, 2, 3], 1), combiners[1].as_ref().unwrap().read());
 
         combiners[0] = combiners[1].take();
-        assert_eq!(&Split(&[0, 2, 3], 1), combiners[0].as_ref().unwrap().split());
+        assert_eq!(&Split(&[0, 2, 3], 1), combiners[0].as_ref().unwrap().read());
 
         assert!(combiners[0].as_mut().unwrap().advance());
-        assert_eq!(&Split(&[1, 2, 3], 0), combiners[0].as_ref().unwrap().split());
+        assert_eq!(&Split(&[1, 2, 3], 0), combiners[0].as_ref().unwrap().read());
 
         assert!(!combiners[0].as_mut().unwrap().advance());
     }

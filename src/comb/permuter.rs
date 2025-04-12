@@ -80,8 +80,10 @@ fn is_full(bitmap: &[bool], min: usize) -> bool {
 }
 
 impl Generator for Permuter<'_> {
+    type Item = [usize];
+
     #[inline]
-    fn ordinals(&self) -> &[usize] {
+    fn read(&self) -> &Self::Item {
         &self.ordinals
     }
 

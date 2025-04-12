@@ -157,15 +157,16 @@ pub fn pick_permutation_reverse(
 
 #[cfg(test)]
 mod tests {
+    use std::fmt::Debug;
     use crate::comb::generator::Generator;
     use crate::itemiser::Itemiser;
     use super::*;
 
-    pub(crate) fn iterate_generator(generator: impl Generator) -> Vec<Vec<usize>> {
+    pub(crate) fn iterate_generator<G>(generator: G) -> Vec<<G::Item as ToOwned>::Owned> where G: Generator, G::Item: ToOwned, <G::Item as ToOwned>::Owned: Debug {
         let outputs = generator.into_itemiser().into_vec();
-        println!("ordinals:");
-        for ordinals in &outputs {
-            println!("{ordinals:?}")
+        println!("outputs:");
+        for output in &outputs {
+            println!("{output:?},")
         }
         outputs
     }

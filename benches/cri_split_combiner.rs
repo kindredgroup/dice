@@ -1,5 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use dice::capture::CaptureMut;
+use dice::comb::generator::Generator;
 use dice::comb::split_combiner;
 
 fn criterion_benchmark(c: &mut Criterion) {

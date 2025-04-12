@@ -36,8 +36,10 @@ impl<'a> Combiner<'a> {
 }
 
 impl Generator for Combiner<'_> {
+    type Item = [usize];
+
     #[inline]
-    fn ordinals(&self) -> &[usize] {
+    fn read(&self) -> &Self::Item {
         &self.ordinals
     }
 

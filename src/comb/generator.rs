@@ -1,7 +1,9 @@
 use crate::itemiser::Itemiser;
 
 pub trait Generator {
-    fn ordinals(&self) -> &[usize];
+    type Item: ?Sized;
+    
+    fn read(&self) -> &Self::Item;
     
     fn advance(&mut self) -> bool;
 
@@ -11,14 +13,14 @@ pub trait Generator {
     }
 }
 
-pub struct IntoItemiser<O: Generator> {
-    occupied: O,
+pub struct IntoItemiser<G: Generator> {
+    occupied: G,
     initial: bool,
 }
 
-impl<O: Generator> From<O> for IntoItemiser<O> {
+impl<G: Generator> From<G> for IntoItemiser<G> {
     #[inline]
-    fn from(occupied: O) -> Self {
+    fn from(occupied: G) -> Self {
         Self {
             occupied,
             initial: true,
@@ -26,8 +28,8 @@ impl<O: Generator> From<O> for IntoItemiser<O> {
     }
 }
 
-impl<'a, I: Generator> Itemiser for IntoItemiser<I> {
-    type Item = [usize];
+impl<'a, G: Generator> Itemiser for IntoItemiser<G> {
+    type Item = G::Item;
 
     #[inline]
     fn next(&mut self) -> Option<&Self::Item> {
@@ -38,7 +40,7 @@ impl<'a, I: Generator> Itemiser for IntoItemiser<I> {
             self.occupied.advance()
         };
         if has_more {
-            Some(self.occupied.ordinals())
+            Some(self.occupied.read())
         } else {
             None
         }

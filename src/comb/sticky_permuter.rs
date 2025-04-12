@@ -99,7 +99,7 @@ pub fn permute_no_alloc(n: usize, r: usize, alloc: Alloc, mut f: impl FnMut(&[us
     let mut combiner = Combiner::new_no_alloc(n, combiner_ordinals);
     loop {
         //println!("combination: {:?}", combiner.ordinals());
-        for (index, ordinal) in combiner.ordinals().iter().enumerate() {
+        for (index, ordinal) in combiner.read().iter().enumerate() {
             whole_ordinals_stack[index] = *ordinal;
         }
 
@@ -146,7 +146,7 @@ fn _permute_no_alloc(
         let (child_stack_start, child_stack_len) = (stack_start + stack_len, stack_len - 1);
         loop {
             // the next child combination to recurse into
-            let Split(head, tail) = splitter.split();
+            let Split(head, tail) = splitter.read();
 
             // resolve the ordinals produced by the splitter into the actual ordinals in the context of the parent combination
             for (index, head_ordinal) in head

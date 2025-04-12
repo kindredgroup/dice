@@ -123,7 +123,7 @@ pub fn summary_no_alloc(probs: &Matrix<f64>, degree: usize, alloc: &mut Alloc) {
             );
             let mut permutation = 0;
             loop {
-                for (index, ordinal) in &mut permuter.ordinals().iter().enumerate() {
+                for (index, ordinal) in &mut permuter.read().iter().enumerate() {
                     podium[index] = sans_self_runners[*ordinal];
                 }
                 podium[rank] = runner;
