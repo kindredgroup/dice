@@ -7,6 +7,7 @@ pub mod itemiser;
 pub mod market;
 pub mod matrix;
 pub mod opt;
+pub mod retain;
 pub mod place;
 pub mod probs;
 pub mod random;
