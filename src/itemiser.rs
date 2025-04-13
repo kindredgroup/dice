@@ -1,3 +1,5 @@
+use crate::retain::Retain;
+
 pub trait Itemiser {
     type Item: ?Sized;
 
@@ -8,18 +10,18 @@ pub trait Itemiser {
     }
 
     #[inline]
-    fn into_iter(self) -> Iter<Self> where Self::Item: ToOwned, Self: Sized {
+    fn into_iter(self) -> Iter<Self> where Self::Item: Retain, Self: Sized {
         Iter {
             itemiser: self,
         }
     }
 
     #[inline]
-    fn into_vec(mut self) -> Vec<<Self::Item as ToOwned>::Owned> where Self::Item: ToOwned, Self: Sized {
+    fn into_vec(mut self) -> Vec<<Self::Item as Retain>::Retained> where Self::Item: Retain, Self: Sized {
         let (min_size, _) = self.size_hint();
         let mut items = Vec::with_capacity(min_size);
         while let Some(item) = self.next() {
-            items.push(item.to_owned())
+            items.push(item.retain())
         }
         items
     }
@@ -81,12 +83,12 @@ pub struct Iter<S> {
     itemiser: S,
 }
 
-impl<S> Iterator for Iter<S> where S: Itemiser, S::Item: ToOwned {
-    type Item = <S::Item as ToOwned>::Owned;
+impl<S> Iterator for Iter<S> where S: Itemiser, S::Item: Retain {
+    type Item = <S::Item as Retain>::Retained;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        self.itemiser.next().map(ToOwned::to_owned)
+        self.itemiser.next().map(Retain::retain)
     }
 
     #[inline]

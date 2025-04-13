@@ -9,27 +9,21 @@
 use crate::capture::CaptureMut;
 use crate::comb::generator::Generator;
 use std::ops::Deref;
+use crate::retain::Retain;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Split<'a>(pub &'a [usize], pub usize);
 
-// impl<'a> ToOwned for Split<'a> {
-//     type Owned = OwnedSplit;
-// 
-//     fn to_owned(&self) -> Self::Owned {
-//         OwnedSplit(self.0.to_owned(), self.1)
-//     }
-// }
+impl Retain for Split<'_> {
+    type Retained = RetainedSplit;
+
+    fn retain(&self) -> Self::Retained {
+        RetainedSplit(self.0.to_vec(), self.1)
+    }
+}
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct OwnedSplit(pub Vec<usize>, pub usize);
-
-// impl<'a> Borrow<Split<'a>> for OwnedSplit {
-//     fn borrow(&self) -> &Split<'a> {
-//         let split = Split(&self.0, self.1);
-//         &split
-//     }
-// }
+pub struct RetainedSplit(pub Vec<usize>, pub usize);
 
 #[derive(Debug)]
 pub struct SplitCombiner<'a> {
@@ -100,39 +94,28 @@ impl<'a> Generator for SplitCombiner<'a> {
 mod tests {
     use crate::capture::CaptureMut;
     use crate::comb::generator::Generator;
-    use crate::comb::split_combiner::{Split, SplitCombiner};
-
-    fn collect_splits(mut splitter: SplitCombiner) -> Vec<(Vec<usize>, usize)> {
-        let mut outputs = vec![];
-        loop {
-            let Split(ordinals, omitted) = splitter.read();
-            outputs.push((ordinals.to_owned().to_owned(), *omitted));
-            if !splitter.advance() {
-                break;
-            }
-        }
-        outputs
-    }
+    use crate::comb::split_combiner::{RetainedSplit, Split, SplitCombiner};
+    use crate::comb::tests::iterate_generator;
 
     #[test]
     fn split_1n0() {
-        let outputs = collect_splits(SplitCombiner::new(1));
+        let outputs = iterate_generator(SplitCombiner::new(1));
         println!("outputs: {outputs:?}");
         let expected = vec![
-            (vec![], 0),
+            RetainedSplit(vec![], 0),
         ];
         assert_eq!(expected, outputs);
     }
 
     #[test]
     fn split_4n3() {
-        let outputs = collect_splits(SplitCombiner::new(4));
+        let outputs = iterate_generator(SplitCombiner::new(4));
         println!("outputs: {outputs:?}");
         let expected = vec![
-            (vec![0, 1, 2], 3),
-            (vec![0, 1, 3], 2),
-            (vec![0, 2, 3], 1),
-            (vec![1, 2, 3], 0),
+            RetainedSplit(vec![0, 1, 2], 3),
+            RetainedSplit(vec![0, 1, 3], 2),
+            RetainedSplit(vec![0, 2, 3], 1),
+            RetainedSplit(vec![1, 2, 3], 0),
         ];
         assert_eq!(expected, outputs);
     }

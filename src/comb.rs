@@ -160,9 +160,10 @@ mod tests {
     use std::fmt::Debug;
     use crate::comb::generator::Generator;
     use crate::itemiser::Itemiser;
+    use crate::retain::Retain;
     use super::*;
 
-    pub(crate) fn iterate_generator<G>(generator: G) -> Vec<<G::Item as ToOwned>::Owned> where G: Generator, G::Item: ToOwned, <G::Item as ToOwned>::Owned: Debug {
+    pub(crate) fn iterate_generator<G>(generator: G) -> Vec<<G::Item as Retain>::Retained> where G: Generator, G::Item: Retain, <G::Item as Retain>::Retained: Debug {
         let outputs = generator.into_itemiser().into_vec();
         println!("outputs:");
         for output in &outputs {
