@@ -37,7 +37,7 @@ pub fn win_to_place_dynor(win_probs: &[f64], k: usize) -> Vec<f64> {
             method: OverroundMethod::OddsRatio,
             value: k as f64,
         },
-        win_probs.iter().map(|p| *p).collect::<Vec<_>>(),
+        win_probs.iter().copied().collect::<Vec<_>>(),
         &BOUNDS,
     );
 
@@ -64,7 +64,7 @@ pub fn win_to_place_harville(win_probs: &[f64], k: usize) -> Vec<f64> {
 /// Produces place probability estimates for `k` placings using an alternative Harville estimation method.
 pub fn win_to_place_est(win_probs: &[f64], k: usize) -> Vec<f64> {
     let all_rank_probs = (2..=k)
-        .map(|rank| harville_est(&win_probs, rank, 1.0))
+        .map(|rank| harville_est(win_probs, rank, 1.0))
         .collect::<Vec<_>>();
     win_probs
         .iter()
@@ -93,7 +93,7 @@ pub fn win_to_place_upscaled(win_probs: &[f64], k: usize, fit_rank_idx: usize) -
             acceptable_residual: 0.0001,
         },
         |value| {
-            let est = harville_est(&win_probs, fit_rank_idx, value);
+            let est = harville_est(win_probs, fit_rank_idx, value);
             let sq_err = est
                 .iter()
                 .zip(harville.iter())
@@ -104,7 +104,7 @@ pub fn win_to_place_upscaled(win_probs: &[f64], k: usize, fit_rank_idx: usize) -
     );
     log::trace!("opt. outcome={outcome:?}");
     let all_rank_probs = (1..k)
-        .map(|rank_idx| harville_est(&win_probs, rank_idx, outcome.optimal_value))
+        .map(|rank_idx| harville_est(win_probs, rank_idx, outcome.optimal_value))
         .collect::<Vec<_>>();
     let mut place_probs = win_probs
         .iter()

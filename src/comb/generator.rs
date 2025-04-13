@@ -28,7 +28,7 @@ impl<G: Generator> From<G> for IntoItemiser<G> {
     }
 }
 
-impl<'a, G: Generator> Itemiser for IntoItemiser<G> {
+impl<G: Generator> Itemiser for IntoItemiser<G> {
     type Item = G::Item;
 
     #[inline]

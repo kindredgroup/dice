@@ -185,7 +185,7 @@ fn _permute_no_alloc(
         true
     } else {
         //println!("{} completed ordinals: {ordinals:?}", "  ".repeat(depth));
-        f(&ordinals)
+        f(ordinals)
     }
 }
 

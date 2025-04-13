@@ -12,7 +12,6 @@ pub mod sticky_permuter;
 pub fn pick_state(cardinalities: &[usize], state_index: usize, ordinals: &mut [usize]) {
     let mut residual = state_index;
     for (index, &cardinality) in cardinalities.iter().enumerate() {
-        let cardinality = cardinality;
         let (quotient, remainder) = (residual / cardinality, residual % cardinality);
         residual = quotient;
         ordinals[index] = remainder;
