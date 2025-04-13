@@ -5,7 +5,7 @@
 //! lowest ordinals earlier.
 
 use crate::capture::CaptureMut;
-use crate::comb::generator::Generator;
+use crate::stream::generator::Generator;
 
 #[derive(Debug)]
 pub struct Combiner<'a> {

@@ -1,5 +1,5 @@
 use crate::capture::CaptureMut;
-use crate::comb::generator::Generator;
+use crate::stream::generator::Generator;
 use crate::comb::permuter::Permuter;
 use crate::comb::{count_permutations, permuter};
 use crate::harville::harville;

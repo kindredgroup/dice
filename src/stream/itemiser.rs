@@ -1,4 +1,4 @@
-use crate::retain::Retain;
+use crate::stream::retain::Retain;
 
 pub trait Itemiser {
     type Item: ?Sized;
@@ -202,7 +202,7 @@ impl<T> Itemiser for SliceIt<'_, T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::itemiser::{Itemiser, SliceIt};
+    use crate::stream::itemiser::{Itemiser, SliceIt};
 
     #[test]
     fn into_iter_empty() {

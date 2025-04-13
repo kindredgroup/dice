@@ -1,4 +1,4 @@
-use crate::itemiser::Itemiser;
+use crate::stream::itemiser::Itemiser;
 
 pub trait Generator {
     type Item: ?Sized;

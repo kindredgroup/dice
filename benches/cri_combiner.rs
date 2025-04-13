@@ -1,7 +1,7 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use dice::capture::CaptureMut;
 use dice::comb::combiner;
-use dice::comb::generator::Generator;
+use dice::stream::generator::Generator;
 
 fn criterion_benchmark(c: &mut Criterion) {
     fn bench(c: &mut Criterion, n: usize, r: usize) {

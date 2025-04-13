@@ -10,7 +10,7 @@
 
 use crate::capture::CaptureMut;
 use crate::comb::combiner::Combiner;
-use crate::comb::generator::Generator;
+use crate::stream::generator::Generator;
 use crate::comb::split_combiner::{Split, SplitCombiner};
 
 #[derive(Debug)]

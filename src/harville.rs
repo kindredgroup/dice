@@ -42,7 +42,7 @@ pub fn harville_est(probs: &[f64], rank_idx: usize, lambda: f64) -> Vec<f64> {
 
 #[cfg(test)]
 mod tests {
-    use crate::itemiser::Itemiser;
+    use crate::stream::itemiser::Itemiser;
     use crate::testing::assert_slice_f64_relative;
     use assert_float_eq::assert_float_relative_eq;
 

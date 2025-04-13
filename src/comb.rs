@@ -3,7 +3,6 @@
 pub mod bitmap;
 pub mod combiner;
 pub mod enumerator;
-pub mod generator;
 pub mod permuter;
 pub mod split_combiner;
 pub mod sticky_permuter;
@@ -157,9 +156,9 @@ pub fn pick_permutation_reverse(
 #[cfg(test)]
 mod tests {
     use std::fmt::Debug;
-    use crate::comb::generator::Generator;
-    use crate::itemiser::Itemiser;
-    use crate::retain::Retain;
+    use crate::stream::generator::Generator;
+    use crate::stream::itemiser::Itemiser;
+    use crate::stream::retain::Retain;
     use super::*;
 
     pub(crate) fn iterate_generator<G>(generator: G) -> Vec<<G::Item as Retain>::Retained> where G: Generator, G::Item: Retain, <G::Item as Retain>::Retained: Debug {

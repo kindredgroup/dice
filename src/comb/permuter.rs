@@ -6,7 +6,7 @@
 //! the lowest ordinals anchored for as long as possible.
 
 use crate::capture::CaptureMut;
-use crate::comb::generator::Generator;
+use crate::stream::generator::Generator;
 
 #[derive(Debug)]
 pub struct Alloc<'a> {

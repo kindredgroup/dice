@@ -1,6 +1,6 @@
 use crate::capture::CaptureMut;
 use crate::comb::{count_states, pick_state};
-use crate::itemiser::Itemiser;
+use crate::stream::itemiser::Itemiser;
 
 pub struct Enumerator<'a> {
     cardinalities: &'a [usize],
@@ -58,7 +58,7 @@ impl Itemiser for Enumerator<'_> {
 #[cfg(test)]
 mod tests {
     use crate::comb::enumerator::Enumerator;
-    use crate::itemiser::Itemiser;
+    use crate::stream::itemiser::Itemiser;
     use crate::comb::tests::inner_array_to_vec;
 
     #[test]

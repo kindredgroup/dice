@@ -7,9 +7,9 @@
 //! combination is `Split([0, 1, 2], 3)`, succeeded by `Split([0, 1, 3], 2)`.
 
 use crate::capture::CaptureMut;
-use crate::comb::generator::Generator;
+use crate::stream::generator::Generator;
 use std::ops::Deref;
-use crate::retain::Retain;
+use crate::stream::retain::Retain;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Split<'a>(pub &'a [usize], pub usize);
@@ -93,7 +93,7 @@ impl<'a> Generator for SplitCombiner<'a> {
 #[cfg(test)]
 mod tests {
     use crate::capture::CaptureMut;
-    use crate::comb::generator::Generator;
+    use crate::stream::generator::Generator;
     use crate::comb::split_combiner::{RetainedSplit, Split, SplitCombiner};
     use crate::comb::tests::iterate_generator;
 

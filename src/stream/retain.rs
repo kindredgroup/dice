@@ -1,7 +1,7 @@
 //! [`Retain`] converts from a borrowed type to an owned representation in a manner similar to
 //! [`ToOwned`]. Unlike the latter, however, [`Retain`] does not mandate that the owned type
-//! implement the [`Borrow`] trait. 
-//! 
+//! implement the [`Borrow`] trait.
+//!
 //! The removal of the [`Borrow`] constraint makes [`Retain`] useful for converting to owned
 //! types whose borrowed representations are not necessarily references. Specifically, the borrowed
 //! type may be an owned struct containing a reference. For example, the owned type `Point`
@@ -27,7 +27,7 @@ impl<W: ToOwned + ?Sized> Retain for W where <W as ToOwned>::Owned: 'static {
 #[cfg(test)]
 mod tests {
     use std::borrow::Borrow;
-    use crate::retain::Retain;
+    use crate::stream::retain::Retain;
 
     #[test]
     fn retain_num() {
@@ -52,18 +52,18 @@ mod tests {
         let owned: String = borrowed.retain();
         assert_eq!(original, owned);
     }
-    
+
     #[derive(Debug, PartialEq)]
     struct FooOwned(i32);
-    
+
     impl FooOwned {
         fn borrow(&self) -> FooBorrowed {
             FooBorrowed(&self.0)
         }
     }
-    
+
     struct FooBorrowed<'a>(&'a i32);
-    
+
     impl Retain for FooBorrowed<'_> {
         type Retained = FooOwned;
 
@@ -71,7 +71,7 @@ mod tests {
             FooOwned(*self.0)
         }
     }
-    
+
     #[test]
     fn retain_inner_ref() {
         let original = FooOwned(42);
