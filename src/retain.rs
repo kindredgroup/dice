@@ -1,3 +1,14 @@
+//! [`Retain`] converts from a borrowed type to an owned representation in a manner similar to
+//! [`ToOwned`]. Unlike the latter, however, [`Retain`] does not mandate that the owned type
+//! implement the [`Borrow`] trait. 
+//! 
+//! The removal of the [`Borrow`] constraint makes [`Retain`] useful for converting to owned
+//! types whose borrowed representations are not necessarily references. Specifically, the borrowed
+//! type may be an owned struct containing a reference. For example, the owned type `Point`
+//! may have a borrowed type `BorrowedPoint<'a>` This relationship cannot currently be expressed
+//! with the [`ToOwned`] and [`Borrow`] traits, which are limited to references. (It requires
+//! GATs to express properly.)
+
 pub trait Retain {
     type Retained: 'static;
 
@@ -12,24 +23,6 @@ impl<W: ToOwned + ?Sized> Retain for W where <W as ToOwned>::Owned: 'static {
         self.to_owned()
     }
 }
-
-// impl<W: Clone + 'static> Own for [W] {
-//     type Owned = Vec<W>;
-// 
-//     #[inline]
-//     fn own(&self) -> Self::Owned {
-//         self.to_vec()
-//     }
-// }
-
-// impl Own for str {
-//     type Owned = String;
-// 
-//     #[inline]
-//     fn own(&self) -> Self::Owned {
-//         self.to_string()
-//     }
-// }
 
 #[cfg(test)]
 mod tests {
