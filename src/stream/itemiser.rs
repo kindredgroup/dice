@@ -5,6 +5,7 @@ pub trait Itemiser {
 
     fn next(&mut self) -> Option<&Self::Item>;
 
+    #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         (0, None)
     }
