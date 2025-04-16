@@ -60,16 +60,16 @@ mod tests {
     use crate::logic::con::Conjunction;
 
     #[test]
-    fn disjunction_display() {
+    fn conjunction_display() {
         let dis = con!["a", "b", "c"];
-        assert_eq!("a ∨ b ∨ c", dis.to_string());
+        assert_eq!("a ∧ b ∧ c", dis.to_string());
     }
     
     #[test]
     fn new_and_push() {
-        let mut dis = Conjunction::new(["a", "b", "c"]);
-        assert_eq!(&["a", "b", "c"], dis.deref());
-        dis.push("d");
-        assert_eq!(&["a", "b", "c", "d"], dis.deref());
+        let mut con = Conjunction::new(["a", "b", "c"]);
+        assert_eq!(&["a", "b", "c"], con.deref());
+        con.push("d");
+        assert_eq!(&["a", "b", "c", "d"], con.deref());
     }
 }
