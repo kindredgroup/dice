@@ -1,8 +1,10 @@
 pub mod capture;
 pub mod comb;
 pub mod dilative;
+pub mod dis_cons;
 pub mod each_way;
 pub mod harville;
+pub mod logic;
 pub mod market;
 pub mod matrix;
 pub mod opt;
