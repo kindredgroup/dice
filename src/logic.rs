@@ -24,36 +24,51 @@ impl<V: VecWrapperMut<Item=T>, T> Push<T> for V {
     }
 }
 
-pub trait Length {
-    fn len(&self) -> usize;
+pub trait IntoInner {
+    type Item;
     
+    fn into_inner(self) -> Vec<Self::Item>;
+}
+
+// pub trait Length {
+//     fn len(&self) -> usize;
+//     
+//     #[inline]
+//     fn is_empty(&self) -> bool {
+//         self.len() == 0
+//     }
+// }
+
+// impl<V: VecWrapper> Length for V {
+//     #[inline]
+//     fn len(&self) -> usize {
+//         self.vec().len()
+//     }
+// }
+
+pub trait New<T> {
+    fn new(items: impl IntoIterator<Item=T>) -> Self;
+    
+    fn with_capacity(capacity: usize) -> Self;
+}
+
+impl<C, T> New<T> for C where C: Default + VecWrapperMut<Item=T> {
     #[inline]
-    fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-}
-
-impl<V: VecWrapper> Length for V {
-    #[inline]
-    fn len(&self) -> usize {
-        self.vec().len()
-    }
-}
-
-pub trait New<C, T> {
-    fn new(items: impl IntoIterator<Item=T>) -> C;
-}
-
-impl<C, T> New<C, T> for C where C: Default + VecWrapperMut<Item=T> {
-    fn new(items: impl IntoIterator<Item=T>) -> C {
-        let mut c = C::default();
+    fn new(items: impl IntoIterator<Item=T>) -> Self {
         let iterator = items.into_iter();
         let (min_items, _) = iterator.size_hint();
-        c.vec_mut().reserve(min_items);
+        let mut container = C::with_capacity(min_items);
         for item in iterator {
-            c.push(item)
+            container.push(item)
         }
-        c
+        container
+    }
+
+    #[inline]
+    fn with_capacity(capacity: usize) -> Self {
+        let mut container = C::default();
+        container.vec_mut().reserve(capacity);
+        container
     }
 }
 

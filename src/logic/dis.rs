@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
-use crate::logic::{join_display_elements, VecWrapper, VecWrapperMut};
+use crate::logic::{join_display_elements, IntoInner, VecWrapper, VecWrapperMut};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Disjunction<T>(Vec<T>);
@@ -43,13 +43,22 @@ impl<T> VecWrapperMut for Disjunction<T> {
     }
 }
 
+impl<T> IntoInner for Disjunction<T> {
+    type Item = T;
+
+    #[inline]
+    fn into_inner(self) -> Vec<Self::Item> {
+        self.0
+    }
+}
+
 #[macro_export]
 macro_rules! dis {
     () => (
-        <crate::logic::dis::Disjunction<_> as crate::logic::New<crate::logic::dis::Disjunction<_>, _>>::new(Vec::new())
+        <crate::logic::dis::Disjunction<_> as crate::logic::New<_>>::new(Vec::new())
     );
     ($($x:expr),+ $(,)?) => (
-        <crate::logic::dis::Disjunction<_> as crate::logic::New<crate::logic::dis::Disjunction<_>, _>>::new((vec![$($x),+]))
+        <crate::logic::dis::Disjunction<_> as crate::logic::New<_>>::new((vec![$($x),+]))
     );
 }
 
