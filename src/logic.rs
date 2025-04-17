@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::Formatter;
 
 pub mod con;
 pub mod dis;
@@ -14,65 +14,69 @@ trait VecWrapperMut: VecWrapper {
 }
 
 pub trait Push<T> {
-    fn push(&mut self, value: T);
+    fn push(&mut self, item: T);
+
+    #[inline]
+    fn push_all(&mut self, items: impl IntoIterator<Item = T>) {
+        for item in items {
+            self.push(item)
+        }
+    }
 }
 
-impl<V: VecWrapperMut<Item=T>, T> Push<T> for V {
+impl<V: VecWrapperMut<Item = T>, T> Push<T> for V {
     #[inline]
-    fn push(&mut self, value: T) {
-        self.vec_mut().push(value)
+    fn push(&mut self, item: T) {
+        self.vec_mut().push(item)
     }
 }
 
 pub trait IntoInner {
     type Item;
-    
+
     fn into_inner(self) -> Vec<Self::Item>;
 }
 
-// pub trait Length {
-//     fn len(&self) -> usize;
-//     
-//     #[inline]
-//     fn is_empty(&self) -> bool {
-//         self.len() == 0
-//     }
-// }
-
-// impl<V: VecWrapper> Length for V {
-//     #[inline]
-//     fn len(&self) -> usize {
-//         self.vec().len()
-//     }
-// }
-
 pub trait New<T> {
-    fn new(items: impl IntoIterator<Item=T>) -> Self;
-    
+    fn new(items: impl IntoIterator<Item = T>) -> Self;
+
     fn with_capacity(capacity: usize) -> Self;
 }
 
-impl<C, T> New<T> for C where C: Default + VecWrapperMut<Item=T> {
+impl<C, T> New<T> for C
+where
+    C: Default + VecWrapperMut<Item = T>,
+{
     #[inline]
-    fn new(items: impl IntoIterator<Item=T>) -> Self {
+    fn new(items: impl IntoIterator<Item = T>) -> Self {
         let iterator = items.into_iter();
         let (min_items, _) = iterator.size_hint();
-        let mut container = C::with_capacity(min_items);
-        for item in iterator {
-            container.push(item)
-        }
+        let mut container = Self::with_capacity(min_items);
+        container.push_all(iterator);
         container
     }
 
     #[inline]
     fn with_capacity(capacity: usize) -> Self {
-        let mut container = C::default();
+        let mut container = Self::default();
         container.vec_mut().reserve(capacity);
         container
     }
 }
 
-fn join_display_elements<T: Display>(slice: &[T], sep: &'static str) -> String {
-    let strings = slice.iter().map(ToString::to_string).collect::<Vec<_>>();
-    strings.join(sep)
+fn format_elements<
+    T,
+    E: Fn(&T, &mut Formatter) -> std::fmt::Result,
+    S: Fn(&mut Formatter) -> std::fmt::Result,
+>(
+    slice: &[T],
+    format_element: E,
+    format_separator: S,
+    f: &mut Formatter<'_>,
+) -> std::fmt::Result {
+    for element in &slice[..slice.len() - 1] {
+        format_element(element, f)?;
+        format_separator(f)?;
+    }
+    format_element(&slice[slice.len() - 1], f)
 }

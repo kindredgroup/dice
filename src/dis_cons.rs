@@ -19,9 +19,7 @@ pub fn expand_dis_cons<T: Clone>(lhs: &T, rhs: &DisCons<T>) -> DisCons<T> {
     expand(lhs, rhs, |lhs, disjunct| {
         let mut conjunction = Conjunction::with_capacity(disjunct.len() + 1);
         conjunction.push(lhs.clone());
-        for conjunct in disjunct.iter() {
-            conjunction.push(conjunct.clone());
-        }
+        conjunction.push_all(disjunct.iter().cloned());
         conjunction
     })
 }

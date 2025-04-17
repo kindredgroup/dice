@@ -1,7 +1,6 @@
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
-use crate::logic::{join_display_elements, IntoInner, VecWrapper, VecWrapperMut};
-use crate::logic::dis::Disjunction;
+use crate::logic::{format_elements, IntoInner, VecWrapper, VecWrapperMut};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Conjunction<T>(Vec<T>);
@@ -24,7 +23,7 @@ impl<T> Default for Conjunction<T> {
 
 impl<T: Display> Display for Conjunction<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", join_display_elements(&self.0, " ∧ "))
+        format_elements(&self.0, |item, f| write!(f, "({item})"),  |_| Ok(()), f)
     }
 }
 
@@ -72,7 +71,7 @@ mod tests {
     #[test]
     fn conjunction_display() {
         let dis = con!["a", "b", "c"];
-        assert_eq!("a ∧ b ∧ c", dis.to_string());
+        assert_eq!("(a)(b)(c)", dis.to_string());
     }
     
     #[test]
