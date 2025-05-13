@@ -1,9 +1,9 @@
 use crate::dis_cons::group_score::Goals::{AtLeast, Exactly};
-use crate::dis_cons::{DisCons, expand_dis_cons};
-use crate::logic::{IntoInner, New, Push};
-use crate::{con, dis};
-use std::fmt::{Display, Formatter};
+use crate::dis_cons::{expand_dis_cons, DisCons};
 use crate::logic::dis::Disjunction;
+use crate::logic::{IntoInner, New, Push};
+use crate::con;
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Goals {
@@ -76,8 +76,58 @@ fn for_player(player: &Player, min_target_goals: usize, goal_cap: usize) -> DisC
 #[cfg(test)]
 mod tests {
     use crate::dis_cons::group_score::Goals::{AtLeast, Exactly};
-    use crate::dis_cons::group_score::{Outcome, Player, for_player, transform};
+    use crate::dis_cons::group_score::{for_player, transform, Outcome, Player};
     use crate::{con, dis};
+
+    #[test]
+    fn transform_3_players_2_3() {
+        let dis_cons = transform(3, 2, 3);
+        println!("{dis_cons}");
+        assert_eq!(
+            dis![
+                con![Outcome(Player(2), Exactly(0)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(2), Exactly(0)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), AtLeast(3))],
+                con![Outcome(Player(2), Exactly(0)), Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(1))],
+                con![Outcome(Player(2), Exactly(0)), Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(2), Exactly(0)), Outcome(Player(1), Exactly(1)), Outcome(Player(0), AtLeast(3))],
+                con![Outcome(Player(2), Exactly(0)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(0))],
+                con![Outcome(Player(2), Exactly(0)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(1))],
+                con![Outcome(Player(2), Exactly(0)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(2), Exactly(0)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), AtLeast(3))],
+                con![Outcome(Player(2), Exactly(0)), Outcome(Player(1), AtLeast(3))],
+                // ---
+                con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), Exactly(1))],
+                con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), AtLeast(3))],
+                con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(0))],
+                con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(1))],
+                con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(1)), Outcome(Player(0), AtLeast(3))],
+                con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(0))],
+                con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(1))],
+                con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), AtLeast(3))],
+                con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), AtLeast(3))],
+                // ---
+                con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), Exactly(0))],
+                con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), Exactly(1))],
+                con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), AtLeast(3))],
+                con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(0))],
+                con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(1))],
+                con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(1)), Outcome(Player(0), AtLeast(3))],
+                con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(0))],
+                con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(1))],
+                con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), AtLeast(3))],
+                con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), AtLeast(3))],
+                // ---
+                con![Outcome(Player(2), AtLeast(3))]
+            ],
+            dis_cons
+        );
+    }
 
     #[test]
     fn transform_3_players_3_3() {
@@ -92,7 +142,7 @@ mod tests {
                 con![Outcome(Player(2), Exactly(0)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(2))],
                 con![Outcome(Player(2), Exactly(0)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), AtLeast(3))],
                 con![Outcome(Player(2), Exactly(0)), Outcome(Player(1), AtLeast(3))],
-                
+                // ---
                 con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), Exactly(2))],
                 con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), AtLeast(3))],
                 con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(1))],
@@ -103,7 +153,7 @@ mod tests {
                 con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(2))],
                 con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), AtLeast(3))],
                 con![Outcome(Player(2), Exactly(1)), Outcome(Player(1), AtLeast(3))],
-                
+                // ---
                 con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), Exactly(1))],
                 con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), Exactly(2))],
                 con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(0)), Outcome(Player(0), AtLeast(3))],
@@ -116,8 +166,31 @@ mod tests {
                 con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(2))],
                 con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), Exactly(2)), Outcome(Player(0), AtLeast(3))],
                 con![Outcome(Player(2), Exactly(2)), Outcome(Player(1), AtLeast(3))],
-                
+                // ---
                 con![Outcome(Player(2), AtLeast(3))]
+            ],
+            dis_cons
+        );
+    }
+
+    #[test]
+    fn transform_2_players_1_3() {
+        let dis_cons = transform(2, 1, 3);
+        println!("{dis_cons}");
+        assert_eq!(
+            dis![
+                con![Outcome(Player(1), Exactly(0)), Outcome(Player(0), Exactly(1))],
+                con![Outcome(Player(1), Exactly(0)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(1), Exactly(0)), Outcome(Player(0), AtLeast(3))],
+                con![Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(0))],
+                con![Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(1))],
+                con![Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(1), Exactly(1)), Outcome(Player(0), AtLeast(3))],
+                con![Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(0))],
+                con![Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(1))],
+                con![Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(1), Exactly(2)), Outcome(Player(0), AtLeast(3))],
+                con![Outcome(Player(1), AtLeast(3))]
             ],
             dis_cons
         );
@@ -136,6 +209,32 @@ mod tests {
                 con![Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(2))],
                 con![Outcome(Player(1), Exactly(2)), Outcome(Player(0), AtLeast(3))],
                 con![Outcome(Player(1), AtLeast(3))]
+            ],
+            dis_cons
+        );
+    }
+
+    #[test]
+    fn transform_2_players_3_4() {
+        let dis_cons = transform(2, 3, 4);
+        println!("{dis_cons}");
+        assert_eq!(
+            dis![
+                con![Outcome(Player(1), Exactly(0)), Outcome(Player(0), Exactly(3))],
+                con![Outcome(Player(1), Exactly(0)), Outcome(Player(0), AtLeast(4))],
+                con![Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(1), Exactly(1)), Outcome(Player(0), Exactly(3))],
+                con![Outcome(Player(1), Exactly(1)), Outcome(Player(0), AtLeast(4))],
+                con![Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(1))],
+                con![Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(1), Exactly(2)), Outcome(Player(0), Exactly(3))],
+                con![Outcome(Player(1), Exactly(2)), Outcome(Player(0), AtLeast(4))],
+                con![Outcome(Player(1), Exactly(3)), Outcome(Player(0), Exactly(0))],
+                con![Outcome(Player(1), Exactly(3)), Outcome(Player(0), Exactly(1))],
+                con![Outcome(Player(1), Exactly(3)), Outcome(Player(0), Exactly(2))],
+                con![Outcome(Player(1), Exactly(3)), Outcome(Player(0), Exactly(3))],
+                con![Outcome(Player(1), Exactly(3)), Outcome(Player(0), AtLeast(4))],
+                con![Outcome(Player(1), AtLeast(4))]
             ],
             dis_cons
         );
